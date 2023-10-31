@@ -1,5 +1,7 @@
 package fr.univnantes;
 
+import org.springframework.web.socket.WebSocketSession;
+
 /**
  * Class representing a user.
  * <p>
@@ -10,6 +12,8 @@ public class User {
 
     private final String UUID;
     private final String name;
+
+    private WebSocketSession session;
 
     /**
      * Creates a new user
@@ -35,5 +39,13 @@ public class User {
      */
     public String getUUID() {
         return UUID;
+    }
+
+    public WebSocketSession getSession() {
+        return session;
+    }
+
+    public void setSession(WebSocketSession session) {
+        this.session = session;
     }
 }
