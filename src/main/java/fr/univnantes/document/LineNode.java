@@ -1,0 +1,388 @@
+package fr.univnantes.document;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+/**
+ * Represents a line node
+ * <p>
+ *     A line node is a node of a document
+ *     It contains a reference to the next and previous line node
+ *     It also contains a reference to the first column node of the line
+ *     It is used to represent a line in a document
+ * </p>
+ */
+public class LineNode {
+    private final AtomicReference<LineNode> next;
+    private final AtomicReference<LineNode> previous;
+    private final AtomicReference<ColumnNode> content;
+
+
+    /**
+     * Create a new line node
+     */
+    public LineNode() {
+        next = new AtomicReference<>(null);
+        previous = new AtomicReference<>(null);
+        content = new AtomicReference<>(null);
+    }
+
+    /**
+     * Empties the line node
+     */
+    public void clear() {
+        synchronized (this) {
+            next.set(null);
+            previous.set(null);
+            content.set(null);
+        }
+    }
+
+    /**
+     * Returns the next line node
+     *
+     * @return the next line node
+     */
+    public LineNode getNext() {
+        return next.get();
+    }
+
+    /**
+     * Returns the next line node and acquires the lock
+     *
+     * @return the next line node
+     */
+    public LineNode getNextAcquire() {
+        return this.next.getAcquire();
+    }
+
+    /**
+     * Sets the next line node
+     *
+     * @param next the next line node
+     */
+    public void setNext(LineNode next) {
+        this.next.set(next);
+    }
+
+    /**
+     * Sets the next line node and releases the lock
+     *
+     * @param next the next line node
+     */
+    public void setNextRelease(LineNode next) {
+        this.next.setRelease(next);
+    }
+
+    /**
+     * Returns the previous line node
+     *
+     * @return the previous line node
+     */
+    public LineNode getPrevious() {
+        return previous.get();
+    }
+
+    /**
+     * Returns the previous line node and acquires the lock
+     *
+     * @return the previous line node
+     */
+    public LineNode getPreviousAcquire() {
+        return this.previous.getAcquire();
+    }
+
+    /**
+     * Sets the previous line node
+     *
+     * @param previous the previous line node
+     */
+    public void setPrevious(LineNode previous) {
+        this.previous.set(previous);
+    }
+
+    /**
+     * Sets the previous line node and releases the lock
+     *
+     * @param previous the previous line node
+     */
+    public void setPreviousRelease(LineNode previous) {
+        this.previous.setRelease(previous);
+    }
+
+    /**
+     * Returns the first column node of the line
+     *
+     * @return the first column node of the line
+     */
+    public ColumnNode getContent() {
+        return content.get();
+    }
+
+    /**
+     * Returns the first column node of the line and acquires the lock
+     *
+     * @return the first column node of the line
+     */
+    public ColumnNode getContentAcquire() {
+        return this.content.getAcquire();
+    }
+
+    /**
+     * Sets the first column node of the line
+     *
+     * @param content the first column node of the line
+     */
+    public void setContent(ColumnNode content) {
+        this.content.set(content);
+    }
+
+    /**
+     * Sets the first column node of the line and releases the lock
+     *
+     * @param content the first column node of the line
+     */
+    public void setContentRelease(ColumnNode content) {
+        this.content.setRelease(content);
+    }
+
+    /**
+     * Returns the last column node of the line
+     *
+     * @return the last column node of the line
+     */
+    private ColumnNode getLastColumnNode() {
+        ColumnNode columnNode = content.get();
+        if (columnNode == null) return null;
+
+        while (columnNode.getNext() != null) {
+            columnNode = columnNode.getNext();
+        }
+        return columnNode;
+    }
+
+    /**
+     * Returns the column node at the given index in the line, the index starts at 0
+     *
+     * @param index the index of the column node to return, the index starts at 0
+     * @return    the column node if it exists, null otherwise
+     */
+    private ColumnNode getColumnNodeAtIndex(int index) {
+        ColumnNode columnNode = content.get();
+        int currentIndex = 0;
+
+        if (columnNode == null) return null;
+
+        while (currentIndex < index && columnNode.getNext() != null) {
+            columnNode = columnNode.getNext();
+            currentIndex++;
+        }
+
+        if (currentIndex == index) {
+            return columnNode;
+        }
+        return null;
+    }
+
+    /**
+     * Inserts a new character at the given index in the line, the index starts at 0
+     *
+     * @param index     the index of the character to insert, the index starts at 0
+     *                  If the index is greater than the number of column nodes,
+     *                  new column nodes will be created to fill the gap
+     * @param character the character to insert
+     * @return      true if the character has been inserted, false otherwise
+     */
+    public boolean insert(int index, char character) {
+        if (index < 0)  return false;
+
+        synchronized (this) {
+            ColumnNode columnNode = content.get();
+
+            if (columnNode == null) {
+                columnNode = new ColumnNode();
+                columnNode.setParent(this);
+                if (index == 0) {
+                    columnNode.setCharacter(character);
+                    content.set(columnNode);
+                    return true;
+                }
+            }
+
+            if (index == 0) {
+                ColumnNode newColumnNode = new ColumnNode();
+                newColumnNode.setCharacter(character);
+                newColumnNode.setNext(columnNode);
+                newColumnNode.setPrevious(null);
+                newColumnNode.setParent(this);
+                columnNode.setPrevious(newColumnNode);
+                content.set(newColumnNode);
+                return true;
+            }
+
+            int currentIndex = 0;
+
+            //  Search the column node
+            //  If the index is greater than the number of column nodes,
+            //  we will insert the new nodes at the end of the line
+            while (currentIndex < index && columnNode.getNext() != null) {
+                columnNode = columnNode.getNext();
+                currentIndex++;
+            }
+
+            if (currentIndex == index) {
+                ColumnNode previousNode = columnNode.getPreviousAcquire();
+                columnNode = previousNode.getNextAcquire();
+
+                ColumnNode newColumnNode = new ColumnNode();
+                newColumnNode.setCharacter(character);
+                newColumnNode.setNext(columnNode);
+                newColumnNode.setPrevious(previousNode);
+                newColumnNode.setParent(this);
+                previousNode.setNextRelease(newColumnNode);
+                columnNode.setPreviousRelease(newColumnNode);
+                return true;
+            }
+
+            while (currentIndex < index) {
+                ColumnNode newColumnNode = new ColumnNode();
+                columnNode.setNext(newColumnNode);
+                newColumnNode.setPrevious(columnNode);
+                newColumnNode.setParent(this);
+
+                columnNode = newColumnNode;
+                currentIndex++;
+            }
+
+            columnNode.setCharacter(character);
+            return true;
+        }
+    }
+
+    /**
+     * Modifies the character at the given index in the line, the index starts at 0
+     *
+     * @param index     the index of the character to modify, the index starts at 0
+     * @param character the new character
+     * @return      true if the character has been modified, false otherwise
+     */
+    public boolean modify(int index, char character) {
+        if (index < 0)  return false;
+
+        synchronized (this) {
+            ColumnNode columnNode = getColumnNodeAtIndex(index);
+
+            if (columnNode != null) {
+                columnNode.setCharacter(character);
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * Deletes the character at the given index in the line, the index starts at 0
+     * @param index    the index of the character to delete, the index starts at 0
+     * @return    true if the character has been deleted, false otherwise
+     */
+    public boolean delete(int index) {
+        if (index < 0)  return false;
+
+        synchronized (this) {
+            ColumnNode columnNode = getColumnNodeAtIndex(index);
+
+            if (columnNode != null) {
+                ColumnNode previousNode = columnNode.getPrevious();
+                ColumnNode nextNode = columnNode.getNext();
+
+                //  If the column node is the first column node
+                if (previousNode == null) {
+                    this.content.set(nextNode);
+                    nextNode.setPrevious(null);
+                    return true;
+                }
+
+                //  If the column node is the last column node
+                if (nextNode == null) {
+                    previousNode.setNext(null);
+                    return true;
+                }
+
+                //  If the column node is in the middle
+                previousNode.setNext(nextNode);
+                nextNode.setPrevious(previousNode);
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * Deletes the line break at the end of the line
+     * @return  true if the line break has been deleted, false otherwise
+     */
+    public boolean deleteLineBreak() {
+        synchronized (this) {
+            LineNode nextLineNode = this.getNext();
+
+            if (nextLineNode == null) return false;
+
+            LineNode newNextLineNode = nextLineNode.getNext();
+
+            if (newNextLineNode != null) {
+                newNextLineNode.setPrevious(this);
+                setNext(newNextLineNode);
+            }
+            else {
+                setNext(null);
+            }
+
+            //  Copy the content of the next line node at the end of the current line node
+            ColumnNode lastCurrentColumnNode = getLastColumnNode();
+            ColumnNode firstNextColumnNode = nextLineNode.getContent();
+
+            ////    Set the parent of the next column nodes to the current line node
+            ColumnNode currentColumnNode = firstNextColumnNode;
+            while (currentColumnNode != null) {
+                currentColumnNode.setParent(this);
+                currentColumnNode = currentColumnNode.getNext();
+            }
+
+            ////    Set the previous and next column nodes of the first and last column nodes
+            /////   The current line node is empty
+            if (lastCurrentColumnNode == null) {
+                content.set(firstNextColumnNode);
+                return true;
+            }
+            //////  If the next line node is empty, we don't need to copy the content
+            if (firstNextColumnNode == null || firstNextColumnNode.getCharacter() == '\0') {
+                return true;
+            }
+
+            lastCurrentColumnNode.setNext(firstNextColumnNode);
+            firstNextColumnNode.setPrevious(lastCurrentColumnNode);
+
+            return true;
+        }
+    }
+
+    /**
+     * Converts the line node to a string representation
+     *
+     * @return  the string representation of the line node
+     */
+    public String toString() {
+        synchronized (this) {
+            StringBuilder sb = new StringBuilder();
+            ColumnNode columnNode = content.get();
+            while (columnNode != null) {
+                sb.append(columnNode.getCharacter());
+                columnNode = columnNode.getNext();
+            }
+            sb.append('\n');
+
+            return sb.toString();
+        }
+    }
+}
