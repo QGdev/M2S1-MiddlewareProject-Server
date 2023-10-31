@@ -1,5 +1,8 @@
 package fr.univnantes.document;
 
+import fr.univnantes.User;
+
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -14,7 +17,8 @@ public class Document {
 
     private final String UUID;
     private String name;
-    private AtomicInteger lineCount = new AtomicInteger(1);
+    private ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
+    private final AtomicInteger lineCount = new AtomicInteger(1);
 
     private final LineNode content;
 
@@ -105,6 +109,45 @@ public class Document {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Returns the users of the document
+     * @return  The users of the document
+     */
+    public ConcurrentHashMap<String, User> getUsers() {
+        return users;
+    }
+
+    /**
+     * Add a user to the document
+     * @param user  The user to add
+     */
+    public boolean addUser(User user) {
+        if (user == null) throw new IllegalArgumentException("User is null");
+        if (users.contains(user.getUUID())) return false;
+
+        return users.put(user.getUUID(), user) == null;
+    }
+
+    /**
+     * Remove a user from the document
+     * @param user  The user to remove
+     */
+    public boolean removeUser(User user) {
+        if (user == null) throw new IllegalArgumentException("User is null");
+
+        return users.remove(user.getUUID()) != null;
+    }
+
+    /**
+     * Check if a user is in the document
+     * @param user  The user to check
+     */
+    public boolean isUserInDocument(User user) {
+        if (user == null) throw new IllegalArgumentException("User is null");
+
+        return users.contains(user.getUUID());
     }
 
     /**
