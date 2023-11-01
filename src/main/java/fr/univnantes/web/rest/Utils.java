@@ -3,7 +3,7 @@ package fr.univnantes.web.rest;
 import org.json.JSONObject;
 
 import fr.univnantes.document.Document;
-import fr.univnantes.User;
+import fr.univnantes.user.User;
 
 /**
  * Utils

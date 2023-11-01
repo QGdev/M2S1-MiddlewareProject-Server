@@ -1,8 +1,8 @@
 package fr.univnantes.web.rest;
 
 import fr.univnantes.DocumentManager;
-import fr.univnantes.User;
-import fr.univnantes.UserManager;
+import fr.univnantes.user.User;
+import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;

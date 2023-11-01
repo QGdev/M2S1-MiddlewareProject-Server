@@ -1,6 +1,6 @@
 package fr.univnantes.document;
 
-import fr.univnantes.User;
+import fr.univnantes.user.User;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;

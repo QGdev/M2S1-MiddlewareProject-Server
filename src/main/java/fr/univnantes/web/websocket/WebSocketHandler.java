@@ -1,8 +1,8 @@
 package fr.univnantes.web.websocket;
 
 import fr.univnantes.DocumentManager;
-import fr.univnantes.User;
-import fr.univnantes.UserManager;
+import fr.univnantes.user.User;
+import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;
 import fr.univnantes.web.websocket.instruction.DeleteInstruction;
 import fr.univnantes.web.websocket.instruction.InsertInstruction;
@@ -15,7 +15,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**

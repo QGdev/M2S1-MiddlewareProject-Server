@@ -1,4 +1,4 @@
-package fr.univnantes;
+package fr.univnantes.user;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;

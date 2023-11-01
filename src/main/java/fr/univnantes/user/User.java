@@ -1,4 +1,4 @@
-package fr.univnantes;
+package fr.univnantes.user;
 
 import org.springframework.web.socket.WebSocketSession;
 
