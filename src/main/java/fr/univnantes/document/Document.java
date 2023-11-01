@@ -178,14 +178,14 @@ public class Document {
 
         if (lineNode == null) {
             lineNode = getLastLineNode();
-            int actualLine = lineCount.getAcquire();
+            int actualLine = lineCount.getAcquire() - 1;
 
             while (actualLine < line) {
                 createLineNode(lineNode);
                 lineNode = lineNode.getNext();
                 actualLine++;
             }
-            lineCount.setRelease(actualLine);
+            lineCount.setRelease(actualLine + 1);
         }
         return lineNode.insert(column, character);
     }

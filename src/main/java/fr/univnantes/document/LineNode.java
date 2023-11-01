@@ -198,63 +198,67 @@ public class LineNode {
         synchronized (this) {
             ColumnNode columnNode = content.get();
 
+            //  If the line is empty
             if (columnNode == null) {
                 columnNode = new ColumnNode();
                 columnNode.setParent(this);
+                content.set(columnNode);
+
+                //  If the index is 0, we insert the character in the new column node
                 if (index == 0) {
                     columnNode.setCharacter(character);
-                    content.set(columnNode);
                     return true;
                 }
             }
 
-            if (index == 0) {
-                ColumnNode newColumnNode = new ColumnNode();
-                newColumnNode.setCharacter(character);
-                newColumnNode.setNext(columnNode);
-                newColumnNode.setPrevious(null);
-                newColumnNode.setParent(this);
-                columnNode.setPrevious(newColumnNode);
-                content.set(newColumnNode);
-                return true;
-            }
+            //  If the line is not empty
 
+            //  We will insert new nodes if needed
             int currentIndex = 0;
-
-            //  Search the column node
-            //  If the index is greater than the number of column nodes,
-            //  we will insert the new nodes at the end of the line
             while (currentIndex < index && columnNode.getNext() != null) {
                 columnNode = columnNode.getNext();
                 currentIndex++;
             }
 
+            //  If the index is equal to the number of column nodes
+            //  We will insert a new column node before the existing column node
             if (currentIndex == index) {
-                ColumnNode previousNode = columnNode.getPreviousAcquire();
-                columnNode = previousNode.getNextAcquire();
-
                 ColumnNode newColumnNode = new ColumnNode();
-                newColumnNode.setCharacter(character);
-                newColumnNode.setNext(columnNode);
-                newColumnNode.setPrevious(previousNode);
                 newColumnNode.setParent(this);
-                previousNode.setNextRelease(newColumnNode);
-                columnNode.setPreviousRelease(newColumnNode);
+                newColumnNode.setNext(columnNode);
+                newColumnNode.setPrevious(columnNode.getPrevious());
+                columnNode.setPrevious(newColumnNode);
+
+                //  If the column node is the first column node
+                if (newColumnNode.getPrevious() == null) {
+                    content.set(newColumnNode);
+                }
+                else {
+                    newColumnNode.getPrevious().setNext(newColumnNode);
+                }
+
+                newColumnNode.setCharacter(character);
                 return true;
             }
 
+            //  If the index is greater than the number of column nodes
+            //  We create new column nodes to fill the gap
             while (currentIndex < index) {
                 ColumnNode newColumnNode = new ColumnNode();
+                newColumnNode.setParent(this);
                 columnNode.setNext(newColumnNode);
                 newColumnNode.setPrevious(columnNode);
-                newColumnNode.setParent(this);
-
                 columnNode = newColumnNode;
                 currentIndex++;
             }
 
-            columnNode.setCharacter(character);
-            return true;
+            //  If the index is equal to the number of column nodes
+            if (currentIndex == index) {
+                columnNode.setCharacter(character);
+                return true;
+            }
+
+            return false;
         }
     }
 
