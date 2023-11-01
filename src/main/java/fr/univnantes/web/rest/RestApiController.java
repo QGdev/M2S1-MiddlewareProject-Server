@@ -67,8 +67,12 @@ public class RestApiController {
      */
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestParam(name = "docName") String documentName, @RequestParam(name = "userName") String userName) {
-        if (documentName == null) throw new IllegalArgumentException("Document name is null");
-        if (userName == null) throw new IllegalArgumentException("User name is null");
+        if (documentName == null) return ResponseEntity.badRequest().body("HTTP 400 - Document name is null");
+        if (userName == null) return ResponseEntity.badRequest().body("HTTP 400 - User name is null");
+
+        if (documentName.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - Document name is empty");
+        if (userName.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - User name is empty");
+
 
         Document document = documentManager.createDocument(documentName);
 
@@ -113,15 +117,16 @@ public class RestApiController {
      */
     @PostMapping("/join")
     public ResponseEntity<String> join(@RequestParam(name = "docId") String documentId, @RequestParam(name = "userName") String userName) {
-        if (documentId == null) throw new IllegalArgumentException("Document id is null");
-        if (userName == null) throw new IllegalArgumentException("User name is null");
+        if (documentId == null) return ResponseEntity.badRequest().body("HTTP 400 - Document id is null");
+        if (userName == null) return ResponseEntity.badRequest().body("HTTP 400 - User name is null");
+
+        if (documentId.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - Document id is empty");
+        if (userName.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - User name is empty");
 
         Document document = documentManager.getDocument(documentId);
 
         //  Check if the document exists
-        if (document == null) {
-            return ResponseEntity.badRequest().body("HTTP 404 - Requested document not found");
-        }
+        if (document == null)   return ResponseEntity.notFound().build();
 
         User user = userManager.createUser(userName);
 

@@ -59,8 +59,11 @@ paths:
                         type: "string"
                         description: "Name of the user who created the document"
                         example: "Capitaine Rillettes"
+        '400':
+          description: "Bad request parameters - See response body for more details."
         '500':
-          description: "The document could not be created."
+          description: "Server error - The document could not be created."
+
   /join:
     post:
       summary: "Joins a document and returns it"
@@ -117,4 +120,6 @@ paths:
                         description: "Name of the user who joined the document"
                         example: "Bob le bricoleur"
         '400':
+          description: "Bad request parameters - See response body for more details."
+        '404':
           description: "Bad Request - Requested document not found."
