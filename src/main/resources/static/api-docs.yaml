@@ -1,0 +1,120 @@
+openapi: "3.0.3"
+info:
+  version: "1.0.0"
+  title: "Collaborative Editor API"
+  description: "API for the collaborative editor"
+paths:
+  /create:
+    post:
+      summary: "Creates a new document and returns it"
+      operationId: "createDocument"
+      parameters:
+        - name: "docName"
+          in: "query"
+          description: "Name of the document to create"
+          required: true
+          schema:
+            type: "string"
+            description: "Name of the document to create"
+            example: "Recette secrete de mes rillettes maison"
+        - name: "userName"
+          in: "query"
+          description: "Name of the user creating the document"
+          required: true
+          schema:
+            type: "string"
+            description: "Name of the user creating the document"
+            example: "Capitaine Rillettes"
+      responses:
+        '202':
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  document:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "string"
+                        description: "Id of the created document (used to communicate through the websocket)"
+                        example: "aa0bf3f0-a117-4f4e-9e5e-c12ce3e0c952"
+                      name:
+                        type: "string"
+                        description: "Name of the created document"
+                        example: "Recette secrete de mes rillettes maison"
+                      content:
+                        type: "string"
+                        description: "Content of the created document (will be empty)"
+                        example: "La recette secrete de mes rillettes maison\n\n"
+                  user:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "string"
+                        description: "Id of the user creating the document (used to communicate through the websocket)"
+                        example: "c4ba80fe-ded0-450c-83f3-6fe0605ee94f"
+                      name:
+                        type: "string"
+                        description: "Name of the user who created the document"
+                        example: "Capitaine Rillettes"
+        '500':
+          description: "The document could not be created."
+  /join:
+    post:
+      summary: "Joins a document and returns it"
+      operationId: "joinDocument"
+      parameters:
+        - name: "docId"
+          in: "query"
+          description: "Id of the document to join"
+          required: true
+          schema:
+            type: "string"
+            description: "Id of the document to join"
+            example: "aa0bf3f0-a117-4f4e-9e5e-c12ce3e0c952"
+        - name: "userName"
+          in: "query"
+          description: "Name of the user joining the document"
+          required: true
+          schema:
+            type: "string"
+            description: "Name of the user joining the document"
+            example: "Bob le bricoleur"
+      responses:
+        '202':
+          description: "Accepted"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  document:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "string"
+                        description: "Id of the joined document (used to communicate through the websocket)"
+                        example: "aa0bf3f0-a117-4f4e-9e5e-c12ce3e0c952"
+                      name:
+                        type: "string"
+                        description: "Name of the joined document"
+                        example: "Recette secrete de mes rillettes maison"
+                      content:
+                        type: "string"
+                        description: "Content of the joined document"
+                        example: "La recette secrete de mes rillettes maison\n\nIngrédients :\n- 1kg de porc\n- 1kg de gras\n- 1kg de sel\n- 1kg de poivre\n\nPréparation :\n- Mélanger le tout\n- Laisser reposer 24h\n- Mettre en pot\n- Laisser reposer 24h\n- Déguster"
+                  user:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "string"
+                        description: "Id of the user joining the document (used to communicate through the websocket)"
+                        example: "1d62e9aa-5996-4e32-be04-61b84f1e77cd"
+                      name:
+                        type: "string"
+                        description: "Name of the user who joined the document"
+                        example: "Bob le bricoleur"
+        '400':
+          description: "Bad Request - Requested document not found."
