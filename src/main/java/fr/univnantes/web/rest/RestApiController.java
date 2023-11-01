@@ -47,13 +47,26 @@ public class RestApiController {
      * @return          The created document as a JSON object containing
      *                      - The document id
      *                      - The document name
+     *                      - The content of the document
      *                      - The user id
-     *                      - The user id
+     *                      - The user name
+     *                  In the form:
+     *                  {
+     *                      "document": {
+     *                          "id": "documentId",
+     *                          "name": "documentName"
+     *                          "content": "documentContent"
+     *                      },
+     *                      "user": {
+     *                          "id": "userId",
+     *                          "name": "userName"
+     *                      }
+     *                  }
      *
      * @apiNote         If the document could not be created, returns an error as an HTTP 500 error code
      */
     @PostMapping("/create")
-    public ResponseEntity<String> create(@RequestParam(name = "documentName") String documentName, @RequestParam(name = "userName") String userName) {
+    public ResponseEntity<String> create(@RequestParam(name = "docName") String documentName, @RequestParam(name = "userName") String userName) {
         if (documentName == null) throw new IllegalArgumentException("Document name is null");
         if (userName == null) throw new IllegalArgumentException("User name is null");
 
@@ -76,17 +89,30 @@ public class RestApiController {
      *
      * @param documentId    The id of the document
      * @param userName      The name of the user
-     * @return          The joined document as a JSON object containing
+-     * @return         The created document as a JSON object containing
      *                      - The document id
      *                      - The document name
+     *                      - The content of the document
      *                      - The user id
-     *                      - The user id
+     *                      - The user name
+     *                  In the form:
+     *                  {
+     *                      "document": {
+     *                          "id": "documentId",
+     *                          "name": "documentName"
+     *                          "content": "documentContent"
+     *                      },
+     *                      "user": {
+     *                          "id": "userId",
+     *                          "name": "userName"
+     *                      }
+     *                  }
      *
      * @apiNote         If the document could not be joined because it does not exist,
      *                  it will return an error as an HTTP 404 error code
      */
     @PostMapping("/join")
-    public ResponseEntity<String> join(@RequestParam(name = "documentId") String documentId, @RequestParam(name = "userName") String userName) {
+    public ResponseEntity<String> join(@RequestParam(name = "docId") String documentId, @RequestParam(name = "userName") String userName) {
         if (documentId == null) throw new IllegalArgumentException("Document id is null");
         if (userName == null) throw new IllegalArgumentException("User name is null");
 
@@ -103,5 +129,4 @@ public class RestApiController {
         JSONObject returnedJSON = createJSONUserDocument(user, document);
         return ResponseEntity.accepted().body(returnedJSON.toString());
     }
-
 }

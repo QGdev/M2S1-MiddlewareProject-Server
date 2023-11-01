@@ -20,7 +20,13 @@ public class Utils {
      * @param documentId        The document id
      * @param documentName      The document name
      * @param documentContent   The document content
-     * @return                A JSON object representing a document
+     * @return  A JSON object representing a document
+     *          In the form:
+     *          {
+     *              "id": "documentId",
+     *              "name": "documentName",
+     *              "content": "documentContent"
+     *          }
      */
     public static JSONObject createJSONDocument(String documentId, String documentName, String documentContent) {
         JSONObject documentJSON = new JSONObject();
@@ -34,7 +40,13 @@ public class Utils {
      * Creates a JSON object representing a document
      *
      * @param document        The document object
-     * @return              A JSON object representing a document
+     * @return  A JSON object representing a document
+     *          In the form:
+     *          {
+     *              "id": "documentId",
+     *              "name": "documentName",
+     *              "content": "documentContent"
+     *          }
      */
     public static JSONObject createJSONDocument(Document document) {
         return createJSONDocument(document.getUUID(), document.getName(), document.toString());
@@ -46,6 +58,11 @@ public class Utils {
      * @param userId    The user id
      * @param username  The username
      * @return        A JSON object representing a user
+     *          In the form:
+     *          {
+     *              "id": "userId",
+     *              "name": "username"
+     *          }
      */
     public static JSONObject createJSONUser(String userId, String username) {
         JSONObject userJSON = new JSONObject();
@@ -59,6 +76,11 @@ public class Utils {
      *
      * @param user  The user object
      * @return  A JSON object representing a user
+     *          In the form:
+     *          {
+     *              "id": "userId",
+     *              "name": "username"
+     *          }
      */
     public static JSONObject createJSONUser(User user) {
         return createJSONUser(user.getUUID(), user.getName());
@@ -73,10 +95,23 @@ public class Utils {
      * @param documentName      The document name
      * @param documentContent   The document content
      * @return          A JSON object representing a user and a document
+     *                  In the form:
+     *                  {
+     *                      "document": {
+     *                        "id": "documentId",
+     *                        "name": "documentName",
+     *                        "content": "documentContent"
+     *                      },
+     *                      "user": {
+     *                          "id": "userId",
+     *                          "name": "username"
+     *                      }
+     *                  }
      */
     public static JSONObject createJSONUserDocument(String userId, String username, String documentId, String documentName, String documentContent) {
-        JSONObject returnedJSON = createJSONUser(userId,username);
+        JSONObject returnedJSON = new JSONObject();
         returnedJSON.put("document", createJSONDocument(documentId, documentName, documentContent));
+        returnedJSON.put("user", createJSONUser(userId, username));
         return returnedJSON;
     }
 
@@ -86,10 +121,23 @@ public class Utils {
      * @param user      The user object
      * @param document  The document object
      * @return          A JSON object representing a user and a document
+     *                  In the form:
+     *                  {
+     *                      "document": {
+     *                        "id": "documentId",
+     *                        "name": "documentName",
+     *                        "content": "documentContent"
+     *                      },
+     *                      "user": {
+     *                          "id": "userId",
+     *                          "name": "username"
+     *                      }
+     *                  }
      */
     public static JSONObject createJSONUserDocument(User user, Document document) {
-        JSONObject returnedJSON = createJSONUser(user);
+        JSONObject returnedJSON = new JSONObject();
         returnedJSON.put("document", createJSONDocument(document));
+        returnedJSON.put("user", createJSONUser(user));
         return returnedJSON;
     }
 }
