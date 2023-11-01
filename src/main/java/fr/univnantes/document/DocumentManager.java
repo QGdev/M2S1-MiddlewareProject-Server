@@ -1,6 +1,4 @@
-package fr.univnantes;
-
-import fr.univnantes.document.Document;
+package fr.univnantes.document;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;

@@ -1,6 +1,6 @@
 package fr.univnantes.web.websocket;
 
-import fr.univnantes.DocumentManager;
+import fr.univnantes.document.DocumentManager;
 import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;

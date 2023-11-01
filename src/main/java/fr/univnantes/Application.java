@@ -1,5 +1,6 @@
 package fr.univnantes;
 
+import fr.univnantes.document.DocumentManager;
 import fr.univnantes.user.UserManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
