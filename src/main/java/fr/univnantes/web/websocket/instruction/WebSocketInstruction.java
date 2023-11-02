@@ -13,10 +13,4 @@ public interface WebSocketInstruction {
      * @return The user identifier of the instruction.
      */
     public String getUserIdentifier();
-
-    /**
-     * Returns the document identifier of the instruction.
-     * @return The document identifier of the instruction.
-     */
-    public String getDocumentIdentifier();
 }

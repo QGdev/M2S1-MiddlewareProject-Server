@@ -66,7 +66,6 @@ public class ConnectInstruction implements WebSocketInstruction {
      * Returns the document identifier of the instruction
      * @return The document identifier of the instruction
      */
-    @Override
     public String getDocumentIdentifier() {
         return documentIdentifier;
     }

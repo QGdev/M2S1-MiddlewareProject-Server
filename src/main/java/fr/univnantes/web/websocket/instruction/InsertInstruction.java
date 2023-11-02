@@ -19,7 +19,6 @@ public class InsertInstruction implements WebSocketInstruction {
     private final int columnIndex;
     private final char character;
     private final String userIdentifier;
-    private final String documentIdentifier;
 
     /**
      * Creates a new insert instruction
@@ -65,12 +64,6 @@ public class InsertInstruction implements WebSocketInstruction {
         String userIdentifier = json.getString("userId");
         if (userIdentifier == null) throw new IllegalArgumentException("userId is null");
         this.userIdentifier = userIdentifier;
-
-        //  Parse the payload documentIdentifier
-        if (!json.has("docId")) throw new IllegalArgumentException("Does not contain a docId");
-        String documentIdentifier = json.getString("docId");
-        if (documentIdentifier == null) throw new IllegalArgumentException("docId is null");
-        this.documentIdentifier = documentIdentifier;
     }
 
     /**
@@ -113,14 +106,5 @@ public class InsertInstruction implements WebSocketInstruction {
     @Override
     public String getUserIdentifier() {
         return userIdentifier;
-    }
-
-    /**
-     * Returns the document identifier of the instruction
-     * @return The document identifier of the instruction
-     */
-    @Override
-    public String getDocumentIdentifier() {
-        return documentIdentifier;
     }
 }
