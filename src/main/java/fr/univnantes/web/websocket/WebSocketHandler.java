@@ -4,10 +4,7 @@ import fr.univnantes.document.DocumentManager;
 import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;
-import fr.univnantes.web.websocket.instruction.DeleteInstruction;
-import fr.univnantes.web.websocket.instruction.InsertInstruction;
-import fr.univnantes.web.websocket.instruction.InstructionType;
-import fr.univnantes.web.websocket.instruction.WebSocketInstruction;
+import fr.univnantes.web.websocket.instruction.*;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -29,6 +26,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private final DocumentManager documentManager = DocumentManager.getInstance();
     private final UserManager userManager = UserManager.getInstance();
+    private final WebSocketSessionManager webSocketSessionManager = WebSocketSessionManager.getInstance();
 
     /**
      * Handles the TextMessage received from the WebSocket
@@ -40,13 +38,24 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
-        //  Parse the message into a WebSocketInstruction
-        WebSocketInstruction parsedInstruction = InstructionType.getConstructedInstruction(message);
-        InstructionType type = parsedInstruction.getType();
+        System.out.println("Received message: " + message.getPayload());
 
-        //  Search for the user and the document in memory
+        //  Parse the message into a WebSocketInstruction
+        WebSocketInstruction parsedInstruction;
+        InstructionType instructionType;
+        try {
+            parsedInstruction = InstructionType.getConstructedInstruction(message);
+            instructionType = parsedInstruction.getType();
+        }
+        catch (IllegalArgumentException e) {
+            session.sendMessage(new TextMessage("ERROR - " + e.getMessage()));
+            session.close();
+            return;
+        }
+
+
+        //  Search for the user in memory
         User user = userManager.getUser(parsedInstruction.getUserIdentifier());
-        Document document = documentManager.getDocument(parsedInstruction.getDocumentIdentifier());
 
         //  If the user is not found, close the session
         if (user == null) {
@@ -54,34 +63,57 @@ public class WebSocketHandler extends TextWebSocketHandler {
             session.close();
             return;
         }
-        //  If the document is not found, close the session
-        if (document == null) {
-            userManager.removeUser(user.getUUID());
-            session.sendMessage(new TextMessage("Document not found"));
-            session.close();
-            return;
+
+        //  If it is a connect instruction, check if the user is already connected to the document
+        if (instructionType == InstructionType.CONNECT) {
+            if (webSocketSessionManager.isAlreadyConnected(session)) {
+                session.sendMessage(new TextMessage("ERROR - Already connected"));
+                return;
+            }
+        }
+        //  If the user is already connected to the document, just send an error message
+        else {
+            if (!webSocketSessionManager.isAlreadyConnected(session)) {
+                session.sendMessage(new TextMessage("ERROR - Not connected"));
+                session.close();
+                userManager.removeUser(user.getUUID());
+                return;
+            }
         }
 
         //  Execute the instruction depending on its type
-        switch (type) {
+        //  But first init the document
+        Document document = null;
+        switch (instructionType) {
             case INSERT:
                 InsertInstruction insertInstruction = (InsertInstruction) parsedInstruction;
+
+                document = documentManager.getDocument(webSocketSessionManager.getDocumentId(session));
+
                 document.insert(insertInstruction.getLineIndex(),
                         insertInstruction.getColumnIndex(),
                         insertInstruction.getCharacter());
                 break;
             case DELETE:
                 DeleteInstruction deleteInstruction = (DeleteInstruction) parsedInstruction;
+
+                document = documentManager.getDocument(webSocketSessionManager.getDocumentId(session));
+
                 document.delete(deleteInstruction.getLineIndex(),
                         deleteInstruction.getColumnIndex());
                 break;
             case CONNECT:
-                //  Check if the user is already in the document
-                //  If so, send an error and don't add the user to the document
-                if (document.isUserInDocument(user)) {
-                    session.sendMessage(new TextMessage("ERROR - User already connected"));
+                ConnectInstruction connectInstruction = (ConnectInstruction) parsedInstruction;
+                document = documentManager.getDocument(connectInstruction.getDocumentIdentifier());
+
+                //  If the document is not found, close the session
+                if (document == null) {
+                    userManager.removeUser(user.getUUID());
+                    session.sendMessage(new TextMessage("Document not found"));
+                    session.close();
                     return;
                 }
+                webSocketSessionManager.addSession(session, document.getUUID(), user.getUUID());
                 document.addUser(user);
                 user.setSession(session);
                 break;
@@ -108,8 +140,23 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        //  TODO: Handle the disconnection of a user
-        //  Might need to remove to be able to have a map with session
-        //  as key and a record of the user and the document as value
+
+        //  Search for the user and the document in memory
+        String userId = webSocketSessionManager.getUserId(session);
+        String documentId = webSocketSessionManager.getDocumentId(session);
+
+        if (userId != null) {
+            User user = userManager.getUser(userId);
+            userManager.removeUser(userId);
+            if (documentId != null) {
+                Document document = documentManager.getDocument(documentId);
+                document.removeUser(user);
+                //  TODO: NEED TO SETTLE ON THE BEHAVIOR OF THE DOCUMENT WHEN ALL USERS ARE DISCONNECTED
+                //if (document.getUsers().isEmpty()) {
+                //    documentManager.removeDocument(documentId);
+                //}
+                webSocketSessionManager.removeSession(session);
+            }
+        }
     }
 }
