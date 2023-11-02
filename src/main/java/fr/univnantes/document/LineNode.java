@@ -302,7 +302,9 @@ public class LineNode {
                 //  If the column node is the first column node
                 if (previousNode == null) {
                     this.content.set(nextNode);
-                    nextNode.setPrevious(null);
+                    if (nextNode != null) {
+                        nextNode.setPrevious(null);
+                    }
                     return true;
                 }
 
