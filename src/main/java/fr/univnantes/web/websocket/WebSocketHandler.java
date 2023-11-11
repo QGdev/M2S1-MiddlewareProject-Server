@@ -59,7 +59,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         //  If the user is not found, close the session
         if (user == null) {
-            session.sendMessage(new TextMessage("User not found"));
+            session.sendMessage(new TextMessage("ERROR - User not found"));
             session.close();
             return;
         }
@@ -84,24 +84,29 @@ public class WebSocketHandler extends TextWebSocketHandler {
         //  Execute the instruction depending on its type
         //  But first init the document
         Document document = null;
+        //  Store operation execution result
+        boolean didOperationSucceeded = false;
+
         switch (instructionType) {
             case INSERT:
                 InsertInstruction insertInstruction = (InsertInstruction) parsedInstruction;
 
                 document = documentManager.getDocument(webSocketSessionManager.getDocumentId(session));
 
-                document.insert(insertInstruction.getLineIndex(),
-                        insertInstruction.getColumnIndex(),
-                        insertInstruction.getCharacter());
+                didOperationSucceeded = document.insert(insertInstruction.getLineIndex(),
+                                            insertInstruction.getColumnIndex(),
+                                            insertInstruction.getCharacter());
                 break;
+
             case DELETE:
                 DeleteInstruction deleteInstruction = (DeleteInstruction) parsedInstruction;
 
                 document = documentManager.getDocument(webSocketSessionManager.getDocumentId(session));
 
-                document.delete(deleteInstruction.getLineIndex(),
-                        deleteInstruction.getColumnIndex());
+                didOperationSucceeded = document.delete(deleteInstruction.getLineIndex(),
+                                            deleteInstruction.getColumnIndex());
                 break;
+
             case CONNECT:
                 ConnectInstruction connectInstruction = (ConnectInstruction) parsedInstruction;
                 document = documentManager.getDocument(connectInstruction.getDocumentIdentifier());
@@ -109,18 +114,31 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 //  If the document is not found, close the session
                 if (document == null) {
                     userManager.removeUser(user.getUUID());
-                    session.sendMessage(new TextMessage("Document not found"));
+                    session.sendMessage(new TextMessage("ERROR - Document not found"));
                     session.close();
                     return;
                 }
-                webSocketSessionManager.addSession(session, document.getUUID(), user.getUUID());
+                didOperationSucceeded = webSocketSessionManager.addSession(session, document.getUUID(), user.getUUID());
+
+                //  If we cannot connect the user to the document, inform the user and close the session
+                if (!didOperationSucceeded) {
+                    session.sendMessage(new TextMessage("ERROR - Cannot connect user to document"));
+                    session.close();
+
+                    userManager.removeUser(user.getUUID());
+                    document.removeUser(user);
+                    user.setSession(null);
+
+                    return;
+                }
+
                 document.addUser(user);
                 user.setSession(session);
                 break;
         }
 
         //  Send an OK message to the user letting him know that the instruction was executed
-        session.sendMessage(new TextMessage("OK"));
+        if (didOperationSucceeded) session.sendMessage(new TextMessage("OK"));
 
         //  Broadcast the message to all users but not the user who sent the message
         for (User u : document.getUsers().values()) {
