@@ -6,10 +6,7 @@ import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 
@@ -65,6 +62,7 @@ public class RestApiController {
      *
      * @apiNote         If the document could not be created, returns an error as an HTTP 500 error code
      */
+    @CrossOrigin(origins = "*")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestParam(name = "docName") String documentName, @RequestParam(name = "userName") String userName) {
         if (documentName == null) return ResponseEntity.badRequest().body("HTTP 400 - Document name is null");
@@ -115,6 +113,8 @@ public class RestApiController {
      * @apiNote         If the document could not be joined because it does not exist,
      *                  it will return an error as an HTTP 404 error code
      */
+    @CrossOrigin(origins = "*")
+
     @PostMapping("/join")
     public ResponseEntity<String> join(@RequestParam(name = "docId") String documentId, @RequestParam(name = "userName") String userName) {
         if (documentId == null) return ResponseEntity.badRequest().body("HTTP 400 - Document id is null");
