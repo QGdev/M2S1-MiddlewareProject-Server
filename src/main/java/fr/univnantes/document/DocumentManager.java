@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class DocumentManager {
 
-    private final static AtomicReference<DocumentManager> instance = new AtomicReference<>(null);
+    private static final AtomicReference<DocumentManager> instance = new AtomicReference<>(null);
     private final ConcurrentHashMap<String, Document> documents;
 
 

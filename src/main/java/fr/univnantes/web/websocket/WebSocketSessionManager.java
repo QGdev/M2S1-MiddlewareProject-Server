@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class WebSocketSessionManager {
 
-    private final static AtomicReference<WebSocketSessionManager> instance = new AtomicReference<>(null);
+    private static final  AtomicReference<WebSocketSessionManager> instance = new AtomicReference<>(null);
     private final ConcurrentHashMap<WebSocketSession, String> documentsSessions;
     private final ConcurrentHashMap<WebSocketSession, String> usersSessions;
 
