@@ -3,6 +3,7 @@ package fr.univnantes.document;
 import fr.univnantes.user.User;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -15,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Document {
 
-    private final String UUID;
+    private final String uuid;
     private String name;
     private ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
     private final AtomicInteger lineCount = new AtomicInteger(1);
@@ -33,7 +34,7 @@ public class Document {
         if (name.isEmpty()) throw new IllegalArgumentException("Document name is empty");
 
         this.name = name;
-        UUID = java.util.UUID.randomUUID().toString();
+        uuid = java.util.UUID.randomUUID().toString();
         content = new LineNode();
     }
 
@@ -92,7 +93,7 @@ public class Document {
      * @return  The UUID of the document
      */
     public String getUUID() {
-        return UUID;
+        return uuid;
     }
 
     /**
@@ -115,7 +116,7 @@ public class Document {
      * Returns the users of the document
      * @return  The users of the document
      */
-    public ConcurrentHashMap<String, User> getUsers() {
+    public ConcurrentMap<String, User> getUsers() {
         return users;
     }
 

@@ -10,7 +10,7 @@ import org.springframework.web.socket.WebSocketSession;
  */
 public class User {
 
-    private final String UUID;
+    private final String uuid;
     private final String name;
 
     private WebSocketSession session;
@@ -21,7 +21,7 @@ public class User {
      * @param name  The name of the user
      */
     public User(String name) {
-        this.UUID = java.util.UUID.randomUUID().toString();
+        this.uuid = java.util.UUID.randomUUID().toString();
         this.name = name;
     }
 
@@ -38,7 +38,7 @@ public class User {
      * @return  The UUID of the user
      */
     public String getUUID() {
-        return UUID;
+        return uuid;
     }
 
     public WebSocketSession getSession() {
