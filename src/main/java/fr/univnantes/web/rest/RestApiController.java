@@ -62,6 +62,7 @@ public class RestApiController {
      *
      * @apiNote         If the document could not be created, returns an error as an HTTP 500 error code
      */
+    //  TODO:   CROSS ORIGIN, NEED TO NARROW IT DOWN TO THE FRONTEND, NOW JUST ACCEPTS EVERYTHING FOR TESTING PURPOSES
     @CrossOrigin(origins = "*")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestParam(name = "docName") String documentName, @RequestParam(name = "userName") String userName) {
@@ -113,8 +114,8 @@ public class RestApiController {
      * @apiNote         If the document could not be joined because it does not exist,
      *                  it will return an error as an HTTP 404 error code
      */
+    //  TODO:   CROSS ORIGIN, NEED TO NARROW IT DOWN TO THE FRONTEND, NOW JUST ACCEPTS EVERYTHING FOR TESTING PURPOSES
     @CrossOrigin(origins = "*")
-
     @PostMapping("/join")
     public ResponseEntity<String> join(@RequestParam(name = "docId") String documentId, @RequestParam(name = "userName") String userName) {
         if (documentId == null) return ResponseEntity.badRequest().body("HTTP 400 - Document id is null");
