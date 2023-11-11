@@ -47,7 +47,7 @@ paths:
                       content:
                         type: "string"
                         description: "Content of the created document (will be empty)"
-                        example: "La recette secrete de mes rillettes maison\n\n"
+                        example: "La recette secrete de mes rillettes maison\n\nIngrédients :\n-1kg de poulet"
                   user:
                     type: "object"
                     properties:
@@ -107,7 +107,7 @@ paths:
                       content:
                         type: "string"
                         description: "Content of the joined document"
-                        example: "La recette secrete de mes rillettes maison\n\nIngrédients :\n- 1kg de porc\n- 1kg de gras\n- 1kg de sel\n- 1kg de poivre\n\nPréparation :\n- Mélanger le tout\n- Laisser reposer 24h\n- Mettre en pot\n- Laisser reposer 24h\n- Déguster"
+                        example: "La recette secrete de mes rillettes maison\n\nIngrédients :\n-1kg de poulet"
                   user:
                     type: "object"
                     properties:
