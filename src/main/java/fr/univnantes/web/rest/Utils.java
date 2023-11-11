@@ -15,6 +15,13 @@ import fr.univnantes.user.User;
 public class Utils {
 
     /**
+     * Private constructor to prevent instantiation
+     */
+    private Utils() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    /**
      * Creates a JSON object representing a document
      *
      * @param documentId        The document id
