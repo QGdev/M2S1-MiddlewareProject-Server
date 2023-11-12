@@ -225,8 +225,6 @@ public class ConnectInstruction implements WebSocketInstruction {
         // Generate the user list
         JSONArray userList = new JSONArray();
         for (User u : userMap.values()) {
-            if (u.getUUID().equals(userIdentifier)) continue;
-
             userList.put(new JSONObject()
                     .put("userId", u.getUUID())
                     .put("userName", u.getName()));
