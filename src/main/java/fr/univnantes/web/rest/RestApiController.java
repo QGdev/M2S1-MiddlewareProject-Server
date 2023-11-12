@@ -1,10 +1,12 @@
 package fr.univnantes.web.rest;
 
+import fr.univnantes.document.Document;
 import fr.univnantes.document.DocumentManager;
 import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
-import fr.univnantes.document.Document;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +25,7 @@ import static fr.univnantes.web.rest.Utils.createJSONUserDocument;
 @RestController
 public class RestApiController {
 
+    private final Logger logger = LoggerFactory.getLogger(RestApiController.class);
     private final DocumentManager documentManager = DocumentManager.getInstance();
     private final UserManager userManager = UserManager.getInstance();
 
@@ -77,12 +80,16 @@ public class RestApiController {
 
         //  Check if the document exists
         if (document == null) {
+            logger.error("Document could not be created");
             return ResponseEntity.internalServerError().body("HTTP 500 - The document could not be created");
         }
 
         User user = userManager.createUser(userName);
+        document.addUser(user);
 
-        //  Create a JSON object to return
+        logger.info("Document {} created by user {}", document.getUUID(), user.getUUID());
+
+                //  Create a JSON object to return
         JSONObject returnedJSON = createJSONUserDocument(user, document);
         return ResponseEntity.accepted().body(returnedJSON.toString());
     }
@@ -130,6 +137,9 @@ public class RestApiController {
         if (document == null)   return ResponseEntity.notFound().build();
 
         User user = userManager.createUser(userName);
+        document.addUser(user);
+
+        logger.info("Document {} joined by user {}", document.getUUID(), user.getUUID());
 
         //  Create a JSON object to return
         JSONObject returnedJSON = createJSONUserDocument(user, document);
