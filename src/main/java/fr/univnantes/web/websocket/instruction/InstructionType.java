@@ -48,6 +48,15 @@ public enum InstructionType {
     }
 
     /**
+     * Returns the type of the instruction.
+     * @return The type.
+     */
+    @Override
+    public String toString() {
+        return type;
+    }
+
+    /**
      * Returns the instruction from the TextMessage
      *
      * @param message   The message containing the TextMessage
@@ -63,7 +72,7 @@ public enum InstructionType {
         if (message == null) throw new IllegalArgumentException("Message is null");
 
         String payload = message.getPayload();
-        if (payload == null) throw new IllegalArgumentException("Payload is null");
+        if (payload.isBlank() || payload.isEmpty()) throw new IllegalArgumentException("Payload is empty or blank");
 
         //  Parse the payload type
         JSONObject json = new JSONObject(payload);

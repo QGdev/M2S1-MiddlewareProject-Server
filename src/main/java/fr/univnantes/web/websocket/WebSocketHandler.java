@@ -16,6 +16,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
+
 
 /**
  * WebSocketHandler
@@ -46,10 +48,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         try {
             parsedInstruction = InstructionType.getConstructedInstruction(message);
         } catch (IllegalArgumentException e) {
-            session.sendMessage(new TextMessage(new JSONObject()
-                    .put("type", "ERROR")
-                    .put("message", e.getMessage())
-                    .toString()));
+            session.sendMessage(new TextMessage(generateErrorMessage(e.getMessage())));
             session.close();
             return;
         }
