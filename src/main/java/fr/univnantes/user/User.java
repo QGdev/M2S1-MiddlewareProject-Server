@@ -41,10 +41,18 @@ public class User {
         return uuid;
     }
 
+    /**
+     * Used to get the WebSocket session
+     * @return  The WebSocket session
+     */
     public WebSocketSession getSession() {
         return session;
     }
 
+    /**
+     * Used to set the WebSocket session
+     * @param session   The WebSocket session
+     */
     public void setSession(WebSocketSession session) {
         this.session = session;
     }
