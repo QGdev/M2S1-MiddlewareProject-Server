@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class UserManager {
 
-    private final static AtomicReference<UserManager> instance = new AtomicReference<>(null);
+    private static final AtomicReference<UserManager> instance = new AtomicReference<>(null);
     private final ConcurrentHashMap<String, User> users;
 
 
