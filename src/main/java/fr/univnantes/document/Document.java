@@ -126,7 +126,7 @@ public class Document {
      */
     public boolean addUser(User user) {
         if (user == null) throw new IllegalArgumentException("User is null");
-        if (users.contains(user.getUUID())) return false;
+        if (users.containsKey(user.getUUID())) return false;
 
         return users.put(user.getUUID(), user) == null;
     }
