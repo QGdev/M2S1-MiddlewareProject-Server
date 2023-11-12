@@ -148,7 +148,7 @@ public class Document {
     public boolean isUserInDocument(User user) {
         if (user == null) throw new IllegalArgumentException("User is null");
 
-        return users.contains(user.getUUID());
+        return users.containsKey(user.getUUID());
     }
 
     /**
