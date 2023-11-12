@@ -5,6 +5,9 @@ import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;
 import fr.univnantes.web.websocket.instruction.*;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -17,13 +20,14 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * WebSocketHandler
  * <p>
- *     This class is the handler for the WebSocket.
- *     It handles the requests to the WebSocket gets WebSocketInstructions and executes them.
- *     It is used to insert and delete characters in a document.
+ * This class is the handler for the WebSocket.
+ * It handles the requests to the WebSocket gets WebSocketInstructions and executes them.
+ * It is used to insert and delete characters in a document.
  * </p>
  */
 public class WebSocketHandler extends TextWebSocketHandler {
 
+    private final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private final DocumentManager documentManager = DocumentManager.getInstance();
     private final UserManager userManager = UserManager.getInstance();
     private final WebSocketSessionManager webSocketSessionManager = WebSocketSessionManager.getInstance();
@@ -31,128 +35,80 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * Handles the TextMessage received from the WebSocket
      *
-     * @param session   The WebSocket session
-     * @param message   The message received
-     * @throws IOException  If an I/O error occurs
+     * @param session The WebSocket session
+     * @param message The message received
+     * @throws IOException If an I/O error occurs
      */
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-
-        System.out.println("Received message: " + message.getPayload());
-
         //  Parse the message into a WebSocketInstruction
         WebSocketInstruction parsedInstruction;
-        InstructionType instructionType;
         try {
             parsedInstruction = InstructionType.getConstructedInstruction(message);
-            instructionType = parsedInstruction.getType();
-        }
-        catch (IllegalArgumentException e) {
-            session.sendMessage(new TextMessage("ERROR - " + e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            session.sendMessage(new TextMessage(new JSONObject()
+                    .put("type", "ERROR")
+                    .put("message", e.getMessage())
+                    .toString()));
             session.close();
             return;
-        }
-
-
-        //  Search for the user in memory
-        User user = userManager.getUser(parsedInstruction.getUserIdentifier());
-
-        //  If the user is not found, close the session
-        if (user == null) {
-            session.sendMessage(new TextMessage("ERROR - User not found"));
-            session.close();
-            return;
-        }
-
-        //  If it is a connect instruction, check if the user is already connected to the document
-        if (instructionType == InstructionType.CONNECT) {
-            if (webSocketSessionManager.isAlreadyConnected(session)) {
-                session.sendMessage(new TextMessage("ERROR - Already connected"));
-                return;
-            }
-        }
-        //  If the user is already connected to the document, just send an error message
-        else {
-            if (!webSocketSessionManager.isAlreadyConnected(session)) {
-                session.sendMessage(new TextMessage("ERROR - Not connected"));
-                session.close();
-                userManager.removeUser(user.getUUID());
-                return;
-            }
         }
 
         //  Execute the instruction depending on its type
-        //  But first init the document
-        Document document = null;
         //  Store operation execution result
         boolean didOperationSucceeded = false;
 
-        switch (instructionType) {
-            case INSERT:
-                InsertInstruction insertInstruction = (InsertInstruction) parsedInstruction;
-
-                document = documentManager.getDocument(webSocketSessionManager.getDocumentId(session));
-
-                didOperationSucceeded = document.insert(insertInstruction.getLineIndex(),
-                                            insertInstruction.getColumnIndex(),
-                                            insertInstruction.getCharacter());
-                break;
-
-            case DELETE:
-                DeleteInstruction deleteInstruction = (DeleteInstruction) parsedInstruction;
-
-                document = documentManager.getDocument(webSocketSessionManager.getDocumentId(session));
-
-                didOperationSucceeded = document.delete(deleteInstruction.getLineIndex(),
-                                            deleteInstruction.getColumnIndex());
-                break;
-
-            case CONNECT:
-                ConnectInstruction connectInstruction = (ConnectInstruction) parsedInstruction;
-                document = documentManager.getDocument(connectInstruction.getDocumentIdentifier());
-
-                //  If the document is not found, close the session
-                if (document == null) {
-                    userManager.removeUser(user.getUUID());
-                    session.sendMessage(new TextMessage("ERROR - Document not found"));
-                    session.close();
-                    return;
-                }
-                didOperationSucceeded = webSocketSessionManager.addSession(session, document.getUUID(), user.getUUID());
-
-                //  If we cannot connect the user to the document, inform the user and close the session
-                if (!didOperationSucceeded) {
-                    session.sendMessage(new TextMessage("ERROR - Cannot connect user to document"));
-                    session.close();
-
-                    userManager.removeUser(user.getUUID());
-                    document.removeUser(user);
-                    user.setSession(null);
-
-                    return;
-                }
-
-                document.addUser(user);
-                user.setSession(session);
-                break;
+        //  Execute the instruction
+        //  If it fails, send an error message to the user and close the session
+        try {
+            didOperationSucceeded = parsedInstruction
+                    .getCallable(webSocketSessionManager,
+                            session,
+                            documentManager,
+                            userManager)
+                    .call();
+        } catch (Exception e) {
+            session.sendMessage(new TextMessage(new JSONObject()
+                    .put("type", "ERROR")
+                    .put("message", "An error occurred while executing the instruction")
+                    .put("instruction", parsedInstruction)
+                    .toString()));
+            logger.error("An error occurred while executing the instruction", e);
+            return;
         }
 
         //  Send an OK message to the user letting him know that the instruction was executed
-        if (didOperationSucceeded) session.sendMessage(new TextMessage("OK"));
+        if (!didOperationSucceeded) {
+            session.sendMessage(new TextMessage(new JSONObject()
+                    .put("type", "ERROR")
+                    .put("message", "Operation failed")
+                    .put("instruction", parsedInstruction)
+                    .toString()));
+            return;
+        }
+
+        //  Retrieve the document and broadcast the message to all users
+        String documentId = webSocketSessionManager.getDocumentId(session);
+        Document document = documentManager.getDocument(documentId);
+
+        TextMessage broadcastMessage = new TextMessage(parsedInstruction.getBroadcastVersion().toString());
 
         //  Broadcast the message to all users but not the user who sent the message
         for (User u : document.getUsers().values()) {
-            if (u != user && u.getSession() != null) {
-                u.getSession().sendMessage(message);
+            if (u.getSession() != null) {
+                if (u.getSession().isOpen()) {
+                    u.getSession().sendMessage(broadcastMessage);
+                }
             }
+
         }
     }
 
     /**
      * Handles the connection of a user to the WebSocket
      *
-     * @param session   The WebSocket session
-     * @throws IOException  If an I/O error occurs
+     * @param session The WebSocket session
+     * @throws IOException If an I/O error occurs
      * @apiNote This method is not implemented for now
      */
     @Override
