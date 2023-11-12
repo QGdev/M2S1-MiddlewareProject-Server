@@ -1,7 +1,5 @@
 package fr.univnantes;
 
-import fr.univnantes.document.DocumentManager;
-import fr.univnantes.user.UserManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -20,9 +18,6 @@ public class Application {
      * @param args  The arguments of the application passed by the command line (only used for SpringBoot)
      */
     public static void main(String[] args) {
-        DocumentManager documentManager = DocumentManager.getInstance();
-        UserManager userManager = UserManager.getInstance();
-
         SpringApplication.run(Application.class, args);
     }
 }

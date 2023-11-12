@@ -1,6 +1,5 @@
 package fr.univnantes.web.websocket;
 
-import fr.univnantes.user.User;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.concurrent.ConcurrentHashMap;
