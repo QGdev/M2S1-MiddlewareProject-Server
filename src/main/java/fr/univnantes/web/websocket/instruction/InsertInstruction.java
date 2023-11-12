@@ -1,7 +1,14 @@
 package fr.univnantes.web.websocket.instruction;
 
+import fr.univnantes.document.Document;
+import fr.univnantes.document.DocumentManager;
+import fr.univnantes.user.UserManager;
+import fr.univnantes.web.websocket.WebSocketSessionManager;
 import org.json.JSONObject;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+
+import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.INSERT;
 
@@ -10,6 +17,15 @@ import static fr.univnantes.web.websocket.instruction.InstructionType.INSERT;
  * <p>
  *     An insert instruction is sent by a client when a user inserts a character in a document.
  *     It contains the line index, the column index, the character, the user identifier and the document identifier.
+ *
+ *     The instruction in JSON format is as follows:
+ *     {
+ *     "type": "INSERT",
+ *     "lineIdx": 0,
+ *     "columnIdx": 0,
+ *     "char": "a",
+ *     "userId": "user1"
+ *     }
  * </p>
  */
 public class InsertInstruction implements WebSocketInstruction {
@@ -68,7 +84,7 @@ public class InsertInstruction implements WebSocketInstruction {
 
     /**
      * Returns the type of the instruction
-     * @return The type of the instruction
+     * @return The type
      */
     @Override
     public InstructionType getType() {
@@ -77,7 +93,7 @@ public class InsertInstruction implements WebSocketInstruction {
 
     /**
      * Returns the line index of the instruction
-     * @return The line index of the instruction
+     * @return The line index
      */
     public int getLineIndex() {
         return lineIndex;
@@ -85,7 +101,7 @@ public class InsertInstruction implements WebSocketInstruction {
 
     /**
      * Returns the column index of the instruction
-     * @return The column index of the instruction
+     * @return The column index
      */
     public int getColumnIndex() {
         return columnIndex;
@@ -93,7 +109,7 @@ public class InsertInstruction implements WebSocketInstruction {
 
     /**
      * Returns the character of the instruction
-     * @return The character of the instruction
+     * @return The character
      */
     public char getCharacter() {
         return character;
@@ -101,10 +117,86 @@ public class InsertInstruction implements WebSocketInstruction {
 
     /**
      * Returns the user identifier of the instruction
-     * @return The user identifier of the instruction
+     * @return The user identifier
      */
     @Override
     public String getUserIdentifier() {
         return userIdentifier;
+    }
+
+    /**
+     * Returns a callable that will execute the instruction.
+     *
+     * @param sessionManager  The session manager.
+     * @param session         The session.
+     * @param documentManager The document manager.
+     * @param userManager     The user manager.
+     * @param args            The other arguments.
+     * @return The callable.
+     */
+    @Override
+    public Callable<Boolean> getCallable(WebSocketSessionManager sessionManager, WebSocketSession session, DocumentManager documentManager, UserManager userManager, Object... args) {
+        return () -> {
+            if (!sessionManager.isAlreadyConnected(session)) {
+                session.sendMessage(new TextMessage(new JSONObject()
+                        .put("type", "ERROR")
+                        .put("message", "Not connected")
+                        .toString()));
+                return false;
+            }
+
+            String docId = sessionManager.getDocumentId(session);
+
+            if (docId == null) {
+                session.sendMessage(new TextMessage(new JSONObject()
+                        .put("type", "ERROR")
+                        .put("message", "Not connected to a document")
+                        .toString()));
+                return false;
+            }
+
+            Document document = documentManager.getDocument(docId);
+
+            if (document == null) {
+                session.sendMessage(new TextMessage(new JSONObject()
+                        .put("type", "ERROR")
+                        .put("message", "Document does not exist")
+                        .toString()));
+                return false;
+            }
+
+            return document.insert(lineIndex, columnIndex, character);
+        };
+    }
+
+    /**
+     * Returns broadcastable version of the instruction.
+     * The one who will be sent to the other users.
+     *
+     * @return The broadcastable version of the instruction.
+     */
+    @Override
+    public JSONObject getBroadcastVersion() {
+        return new JSONObject()
+                .put("type", TYPE.type)
+                .put("lineIdx", lineIndex)
+                .put("columnIdx", columnIndex)
+                .put("char", character)
+                .put("userId", userIdentifier);
+    }
+
+    /**
+     * Returns string representation of the instruction.
+     * @return A string representation
+     */
+    @Override
+    public String toString() {
+        return new JSONObject()
+                .put("type", TYPE.type)
+                .put("lineIdx", lineIndex)
+                .put("columnIdx", columnIndex)
+                .put("char", character)
+                .put("userId", userIdentifier)
+                .toString();
     }
 }
