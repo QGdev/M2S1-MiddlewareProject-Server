@@ -11,6 +11,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.DELETE_LINE_BRK;
+import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
 
 /**
  * Represents a websocket line break delete instruction.
@@ -42,28 +43,28 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
         if (message == null) throw new IllegalArgumentException("Message is null");
 
         String payload = message.getPayload();
-        if (payload == null) throw new IllegalArgumentException("Payload is null");
+        if (payload.isBlank() || payload.isEmpty()) throw new IllegalArgumentException("Payload is empty or blank");
 
         //  Parse the payload type
         JSONObject json = new JSONObject(payload);
-        if (!json.has("type")) throw new IllegalArgumentException("Does not contain a type");
+        if (!json.has(JSONAttributes.TYPE)) throw new IllegalArgumentException("Does not contain a type");
 
-        String type = json.getString("type");
+        String type = json.getString(JSONAttributes.TYPE);
         if (type == null) throw new IllegalArgumentException("Does not contain a type");
 
         if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not INSERT");
 
         //  Parse the payload lineIndex
-        if (!json.has("lineIdx")) throw new IllegalArgumentException("Does not contain a lineIdx");
-        int lineIndex = json.getInt("lineIdx");
-        if (lineIndex < 0) throw new IllegalArgumentException("lineIdx is negative");
-        this.lineIndex = lineIndex;
+        if (!json.has(JSONAttributes.LINE_IDX)) throw new IllegalArgumentException("Does not contain a lineIdx");
+        int lineIdx = json.getInt(JSONAttributes.LINE_IDX);
+        if (lineIdx < 0) throw new IllegalArgumentException("lineIdx is negative");
+        this.lineIndex = lineIdx;
 
         //  Parse the payload userIdentifier
-        if (!json.has("userId")) throw new IllegalArgumentException("Does not contain a userId");
-        String userIdentifier = json.getString("userId");
-        if (userIdentifier == null) throw new IllegalArgumentException("userId is null");
-        this.userIdentifier = userIdentifier;
+        if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
+        String userId = json.getString(JSONAttributes.USER_ID);
+        if (userId == null) throw new IllegalArgumentException("userId is null");
+        this.userIdentifier = userId;
     }
 
     /**
@@ -107,10 +108,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
         return () -> {
             //  Check if the user is connected
             if (!sessionManager.isAlreadyConnected(session)) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Not connected")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("User is not connected")));
                 return false;
             }
 
@@ -118,10 +116,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
             String docId = sessionManager.getDocumentId(session);
 
             if (docId == null) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Not connected to a document")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("User is not connected to a document")));
                 return false;
             }
 
@@ -129,10 +124,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
             Document document = documentManager.getDocument(docId);
 
             if (document == null) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Document does not exist")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("Document does not exist")));
                 return false;
             }
 
@@ -150,9 +142,9 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
     @Override
     public JSONObject getBroadcastVersion() {
         return new JSONObject()
-                .put("type", TYPE.type)
-                .put("lineIdx", lineIndex)
-                .put("userId", userIdentifier);
+                .put(JSONAttributes.TYPE, TYPE.type)
+                .put(JSONAttributes.LINE_IDX, lineIndex)
+                .put(JSONAttributes.USER_ID, userIdentifier);
     }
 
     /**
@@ -162,9 +154,9 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
     @Override
     public String toString() {
         return new JSONObject()
-                .put("type", TYPE.type)
-                .put("lineIdx", lineIndex)
-                .put("userId", userIdentifier)
+                .put(JSONAttributes.TYPE, TYPE.type)
+                .put(JSONAttributes.LINE_IDX, lineIndex)
+                .put(JSONAttributes.USER_ID, userIdentifier)
                 .toString();
     }
 }

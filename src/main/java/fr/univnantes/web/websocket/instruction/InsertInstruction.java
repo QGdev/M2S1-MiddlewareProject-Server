@@ -11,6 +11,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.INSERT;
+import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
 
 /**
  * Represents a websocket insert instruction.
@@ -45,41 +46,41 @@ public class InsertInstruction implements WebSocketInstruction {
         if (message == null) throw new IllegalArgumentException("Message is null");
 
         String payload = message.getPayload();
-        if (payload == null) throw new IllegalArgumentException("Payload is null");
+        if (payload.isBlank() || payload.isEmpty()) throw new IllegalArgumentException("Payload is empty or blank");
 
         //  Parse the payload type
         JSONObject json = new JSONObject(payload);
-        if (!json.has("type")) throw new IllegalArgumentException("Does not contain a type");
+        if (!json.has(JSONAttributes.TYPE)) throw new IllegalArgumentException("Does not contain a type");
 
-        String type = json.getString("type");
+        String type = json.getString(JSONAttributes.TYPE);
         if (type == null) throw new IllegalArgumentException("Does not contain a type");
 
         if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not INSERT");
 
         //  Parse the payload lineIndex
-        if (!json.has("lineIdx")) throw new IllegalArgumentException("Does not contain a lineIdx");
-        int lineIndex = json.getInt("lineIdx");
-        if (lineIndex < 0) throw new IllegalArgumentException("lineIdx is negative");
-        this.lineIndex = lineIndex;
+        if (!json.has(JSONAttributes.LINE_IDX)) throw new IllegalArgumentException("Does not contain a lineIdx");
+        int lineIdx = json.getInt(JSONAttributes.LINE_IDX);
+        if (lineIdx < 0) throw new IllegalArgumentException("lineIdx is negative");
+        this.lineIndex = lineIdx;
 
         //  Parse the payload columnIndex
-        if (!json.has("columnIdx")) throw new IllegalArgumentException("Does not contain a columnIdx");
-        int columnIndex = json.getInt("columnIdx");
-        if (columnIndex < 0) throw new IllegalArgumentException("columnIdx is negative");
-        this.columnIndex = columnIndex;
+        if (!json.has(JSONAttributes.COLUMN_IDX)) throw new IllegalArgumentException("Does not contain a columnIdx");
+        int columnIdx = json.getInt(JSONAttributes.COLUMN_IDX);
+        if (columnIdx < 0) throw new IllegalArgumentException("columnIdx is negative");
+        this.columnIndex = columnIdx;
 
         //  Parse the payload character
-        if (!json.has("char")) throw new IllegalArgumentException("Does not contain a char");
-        String character = json.getString("char");
-        if (character == null) throw new IllegalArgumentException("char is null");
-        if (character.length() != 1) throw new IllegalArgumentException("char is not a single character");
-        this.character = character.charAt(0);
+        if (!json.has(JSONAttributes.CHAR)) throw new IllegalArgumentException("Does not contain a char");
+        String chr = json.getString(JSONAttributes.CHAR);
+        if (chr == null) throw new IllegalArgumentException("char is null");
+        if (chr.length() != 1) throw new IllegalArgumentException("char is not a single character");
+        this.character = chr.charAt(0);
 
         //  Parse the payload userIdentifier
-        if (!json.has("userId")) throw new IllegalArgumentException("Does not contain a userId");
-        String userIdentifier = json.getString("userId");
-        if (userIdentifier == null) throw new IllegalArgumentException("userId is null");
-        this.userIdentifier = userIdentifier;
+        if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
+        String userId = json.getString(JSONAttributes.USER_ID);
+        if (userId == null) throw new IllegalArgumentException("userId is null");
+        this.userIdentifier = userId;
     }
 
     /**
@@ -138,30 +139,21 @@ public class InsertInstruction implements WebSocketInstruction {
     public Callable<Boolean> getCallable(WebSocketSessionManager sessionManager, WebSocketSession session, DocumentManager documentManager, UserManager userManager, Object... args) {
         return () -> {
             if (!sessionManager.isAlreadyConnected(session)) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Not connected")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("User is not connected")));
                 return false;
             }
 
             String docId = sessionManager.getDocumentId(session);
 
             if (docId == null) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Not connected to a document")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("User is not connected to a document")));
                 return false;
             }
 
             Document document = documentManager.getDocument(docId);
 
             if (document == null) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Document does not exist")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("Document does not exist")));
                 return false;
             }
 
@@ -178,11 +170,11 @@ public class InsertInstruction implements WebSocketInstruction {
     @Override
     public JSONObject getBroadcastVersion() {
         return new JSONObject()
-                .put("type", TYPE.type)
-                .put("lineIdx", lineIndex)
-                .put("columnIdx", columnIndex)
-                .put("char", character)
-                .put("userId", userIdentifier);
+                .put(JSONAttributes.TYPE, TYPE.type)
+                .put(JSONAttributes.LINE_IDX, lineIndex)
+                .put(JSONAttributes.COLUMN_IDX, columnIndex)
+                .put(JSONAttributes.CHAR, String.valueOf(character))
+                .put(JSONAttributes.USER_ID, userIdentifier);
     }
 
     /**
@@ -192,11 +184,11 @@ public class InsertInstruction implements WebSocketInstruction {
     @Override
     public String toString() {
         return new JSONObject()
-                .put("type", TYPE.type)
-                .put("lineIdx", lineIndex)
-                .put("columnIdx", columnIndex)
-                .put("char", character)
-                .put("userId", userIdentifier)
+                .put(JSONAttributes.TYPE, TYPE.type)
+                .put(JSONAttributes.LINE_IDX, lineIndex)
+                .put(JSONAttributes.COLUMN_IDX, columnIndex)
+                .put(JSONAttributes.CHAR, String.valueOf(character))
+                .put(JSONAttributes.USER_ID, userIdentifier)
                 .toString();
     }
 }

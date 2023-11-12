@@ -18,6 +18,29 @@ import java.util.concurrent.Callable;
 public interface WebSocketInstruction {
 
     /**
+     * Represents the attributes of a websocket instruction in JSON format.
+     */
+    final class JSONAttributes {
+        public static final String TYPE = "type";
+        public static final String USER_ID = "userId";
+        public static final String DOC_ID = "docId";
+        public static final String CONTENT = "content";
+        public static final String USERS_LIST = "users";
+        public static final String USER_NAME = "userName";
+        public static final String MESSAGE = "message";
+        public static final String LINE_IDX = "lineIdx";
+        public static final String COLUMN_IDX = "columnIdx";
+        public static final String CHAR = "char";
+
+        /**
+         * Private constructor to prevent instantiation.
+         */
+        private JSONAttributes() {
+            throw new IllegalStateException("Utility class");
+        }
+    }
+
+    /**
      * Returns the type of the instruction.
      * @return The type.
      */

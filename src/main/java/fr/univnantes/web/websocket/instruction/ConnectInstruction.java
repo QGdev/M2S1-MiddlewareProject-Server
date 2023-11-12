@@ -5,7 +5,6 @@ import fr.univnantes.document.DocumentManager;
 import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
 import fr.univnantes.web.websocket.WebSocketSessionManager;
-import jakarta.websocket.Session;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.web.socket.TextMessage;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.CONNECT;
+import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
 
 /**
  * Represents a websocket connect instruction.
@@ -48,28 +48,28 @@ public class ConnectInstruction implements WebSocketInstruction {
         if (message == null) throw new IllegalArgumentException("Message is null");
 
         String payload = message.getPayload();
-        if (payload == null) throw new IllegalArgumentException("Payload is null");
+        if (payload.isBlank() || payload.isEmpty()) throw new IllegalArgumentException("Payload is empty or blank");
 
         //  Parse the payload type
         JSONObject json = new JSONObject(payload);
-        if (!json.has("type")) throw new IllegalArgumentException("Does not contain a type");
+        if (!json.has(JSONAttributes.TYPE)) throw new IllegalArgumentException("Does not contain a type");
 
-        String type = json.getString("type");
+        String type = json.getString(JSONAttributes.TYPE);
         if (type == null) throw new IllegalArgumentException("Does not contain a type");
 
         if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not INSERT");
 
         //  Parse the payload userIdentifier
-        if (!json.has("userId")) throw new IllegalArgumentException("Does not contain a userId");
-        String userIdentifier = json.getString("userId");
-        if (userIdentifier == null) throw new IllegalArgumentException("userIdentifier is null");
-        this.userIdentifier = userIdentifier;
+        if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
+        String userId = json.getString(JSONAttributes.USER_ID);
+        if (userId == null) throw new IllegalArgumentException("userIdentifier is null");
+        this.userIdentifier = userId;
 
         //  Parse the payload documentIdentifier
-        if (!json.has("docId")) throw new IllegalArgumentException("Does not contain a docId");
-        String documentIdentifier = json.getString("docId");
-        if (documentIdentifier == null) throw new IllegalArgumentException("docIdentifier is null");
-        this.documentIdentifier = documentIdentifier;
+        if (!json.has(JSONAttributes.DOC_ID)) throw new IllegalArgumentException("Does not contain a docId");
+        String documentId = json.getString(JSONAttributes.DOC_ID);
+        if (documentId == null) throw new IllegalArgumentException("docIdentifier is null");
+        this.documentIdentifier = documentId;
     }
 
     /**
@@ -105,89 +105,72 @@ public class ConnectInstruction implements WebSocketInstruction {
         return () -> {
             //  Verify that the session is not already connected
             if (sessionManager.isAlreadyConnected(session)) {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put("type", "ERROR")
-                        .put("message", "Already connected")
-                        .toString()));
+                session.sendMessage(new TextMessage(generateErrorMessage("Already connected")));
                 return false;
             }
+
+            //  Verify that the user
+            User user = userManager.getUser(userIdentifier);
+
+            if (user == null) {
+                session.sendMessage(new TextMessage(generateErrorMessage("User does not exist")));
+                session.close();
+
+                //  Remove the session from the session manager
+                sessionManager.removeSession(session);
+                userManager.removeUser(userIdentifier);
+                return false;
+            }
+
+            //  Verify that the document exists
+            Document document = documentManager.getDocument(documentIdentifier);
+
+            if (document == null) {
+                session.sendMessage(new TextMessage(generateErrorMessage("Document does not exist")));
+                session.close();
+
+                //  Remove the session from the session manager
+                sessionManager.removeSession(session);
+                userManager.removeUser(userIdentifier);
+
+                return false;
+            }
+
+            //  Check if the user is registered to the document
+            if (!document.isUserInDocument(user)) {
+                session.sendMessage(new TextMessage(generateErrorMessage("User is not registered to the document")));
+                session.close();
+
+                //  Remove the session from the session manager
+                sessionManager.removeSession(session);
+                userManager.removeUser(userIdentifier);
+
+                return false;
+            }
+
+            //  Add the session to the session manager
+            boolean success = sessionManager.addSession(session, documentIdentifier, userIdentifier);
+            user.setSession(session);
+
+            if (!success) {
+                session.sendMessage(new TextMessage(generateErrorMessage("Could not connect to the document")));
+                session.close();
+
+                //  Remove the session from the session manager
+                sessionManager.removeSession(session);
+                userManager.removeUser(userIdentifier);
+
+                return false;
+            }
+            //  If everything went well, send the document to the user
             else {
-                //  Verify that the user
-                User user = userManager.getUser(userIdentifier);
-
-                if (user == null) {
-                    session.sendMessage(new TextMessage(new JSONObject()
-                            .put("type", "ERROR")
-                            .put("message", "User does not exist")
-                             .toString()));
-                    session.close();
-
-                    //  Remove the session from the session manager
-                    sessionManager.removeSession(session);
-                    userManager.removeUser(userIdentifier);
-                    return false;
-                }
-
-                //  Verify that the document exists
-                Document document = documentManager.getDocument(documentIdentifier);
-
-                if (document == null) {
-                    session.sendMessage(new TextMessage(new JSONObject()
-                            .put("type", "ERROR")
-                            .put("message", "Document does not exist")
-                            .toString()));
-                    session.close();
-
-                    //  Remove the session from the session manager
-                    sessionManager.removeSession(session);
-                    userManager.removeUser(userIdentifier);
-
-                    return false;
-                }
-
-                //  Check if the user is registered to the document
-                if (!document.isUserInDocument(user)) {
-                    session.sendMessage(new TextMessage(new JSONObject()
-                            .put("type", "ERROR")
-                            .put("message", "User is not registered to this document")
-                            .toString()));
-                    session.close();
-
-                    //  Remove the session from the session manager
-                    sessionManager.removeSession(session);
-                    userManager.removeUser(userIdentifier);
-
-                    return false;
-                }
-
-                //  Add the session to the session manager
-                boolean success = sessionManager.addSession(session, documentIdentifier, userIdentifier);
-                user.setSession(session);
-
-                if (!success) {
-                    session.sendMessage(new TextMessage(new JSONObject()
-                            .put("type", "ERROR")
-                            .put("message", "Could not connect")
-                            .toString()));
-                    session.close();
-
-                    //  Remove the session from the session manager
-                    sessionManager.removeSession(session);
-                    userManager.removeUser(userIdentifier);
-
-                    return false;
-                }
-                //  If everything went well, send the document to the user
-                else {
-                    session.sendMessage(new TextMessage(new JSONObject()
-                            .put("type", "CONNECT")
-                            .put("message", "Connected")
-                            .put("docId", documentIdentifier)
-                            .put("userId", userIdentifier)
-                            .put("content", document.toString())
-                            .toString()));
-                    return true;
-                }
+                session.sendMessage(new TextMessage(new JSONObject()
+                        .put(JSONAttributes.TYPE, CONNECT.type)
+                        .put(JSONAttributes.MESSAGE, "Connected")
+                        .put(JSONAttributes.USER_ID, userIdentifier)
+                        .put(JSONAttributes.CONTENT, document.toString())
+                        .toString()));
+                return true;
             }
         };
     }
@@ -226,17 +209,16 @@ public class ConnectInstruction implements WebSocketInstruction {
         JSONArray userList = new JSONArray();
         for (User u : userMap.values()) {
             userList.put(new JSONObject()
-                    .put("userId", u.getUUID())
-                    .put("userName", u.getName()));
+                    .put(JSONAttributes.USER_ID, u.getUUID())
+                    .put(JSONAttributes.USER_NAME, u.getName()));
         }
 
 
         return new JSONObject()
-                .put("type", "CONNECT")
-                .put("userId", userIdentifier)
-                .put("userName", userName)
-                .put("users", userList)
-                .put("docId", documentIdentifier);
+                .put(JSONAttributes.TYPE, TYPE.type)
+                .put(JSONAttributes.USER_ID, userIdentifier)
+                .put(JSONAttributes.USER_NAME, userName)
+                .put(JSONAttributes.USERS_LIST, userList);
     }
 
     /**
@@ -246,9 +228,9 @@ public class ConnectInstruction implements WebSocketInstruction {
     @Override
     public String toString() {
         return new JSONObject()
-                .put("type", "CONNECT")
-                .put("userId", userIdentifier)
-                .put("docId", documentIdentifier)
+                .put(JSONAttributes.TYPE, TYPE.type)
+                .put(JSONAttributes.USER_ID, userIdentifier)
+                .put(JSONAttributes.DOC_ID, documentIdentifier)
                 .toString();
     }
 }
