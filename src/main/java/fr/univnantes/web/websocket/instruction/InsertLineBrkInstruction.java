@@ -10,39 +10,37 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.concurrent.Callable;
 
-import static fr.univnantes.web.websocket.instruction.InstructionType.INSERT;
+import static fr.univnantes.web.websocket.instruction.InstructionType.INSERT_LINE_BRK;
 import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
 
 /**
- * Represents a websocket insert instruction.
+ * Represents a websocket insert line break instruction.
  * <p>
- *     An insert instruction is sent by a client when a user inserts a character in a document.
- *     It contains the line index, the column index, the character, the user identifier and the document identifier.
+ *     An insert line break instruction is sent by a client when a user inserts a line break in a document.
+ *     It contains the line index, the column index and the user identifier.
  *
  *     The instruction in JSON format is as follows:
  *     {
- *     "type": "INSERT",
+ *     "type": "INSERT_LINE_BRK,
  *     "lineIdx": 0,
  *     "columnIdx": 0,
- *     "char": "a",
  *     "userId": "user1"
  *     }
  * </p>
  */
-public class InsertInstruction implements WebSocketInstruction {
+public class InsertLineBrkInstruction implements WebSocketInstruction {
 
-    private static final InstructionType TYPE = INSERT;
+    private static final InstructionType TYPE = INSERT_LINE_BRK;
     private final int lineIndex;
     private final int columnIndex;
-    private final char character;
     private final String userIdentifier;
 
     /**
-     * Creates a new insert instruction
+     * Creates a new insert line break instruction
      *
      * @param message   The message containing the TextMessage
      */
-    public InsertInstruction(TextMessage message) {
+    public InsertLineBrkInstruction(TextMessage message) {
         if (message == null) throw new IllegalArgumentException("Message is null");
 
         String payload = message.getPayload();
@@ -68,13 +66,6 @@ public class InsertInstruction implements WebSocketInstruction {
         int columnIdx = json.getInt(JSONAttributes.COLUMN_IDX);
         if (columnIdx < 0) throw new IllegalArgumentException("columnIdx is negative");
         this.columnIndex = columnIdx;
-
-        //  Parse the payload character
-        if (!json.has(JSONAttributes.CHAR)) throw new IllegalArgumentException("Does not contain a char");
-        String chr = json.getString(JSONAttributes.CHAR);
-        if (chr == null) throw new IllegalArgumentException("char is null");
-        if (chr.length() != 1) throw new IllegalArgumentException("char is not a single character");
-        this.character = chr.charAt(0);
 
         //  Parse the payload userIdentifier
         if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
@@ -106,14 +97,6 @@ public class InsertInstruction implements WebSocketInstruction {
      */
     public int getColumnIndex() {
         return columnIndex;
-    }
-
-    /**
-     * Returns the character of the instruction
-     * @return The character
-     */
-    public char getCharacter() {
-        return character;
     }
 
     /**
@@ -157,7 +140,7 @@ public class InsertInstruction implements WebSocketInstruction {
                 return false;
             }
 
-            return document.insert(lineIndex, columnIndex, character);
+            return document.insertLineBreak(lineIndex, columnIndex);
         };
     }
 
@@ -173,7 +156,6 @@ public class InsertInstruction implements WebSocketInstruction {
                 .put(JSONAttributes.TYPE, TYPE.type)
                 .put(JSONAttributes.LINE_IDX, lineIndex)
                 .put(JSONAttributes.COLUMN_IDX, columnIndex)
-                .put(JSONAttributes.CHAR, String.valueOf(character))
                 .put(JSONAttributes.USER_ID, userIdentifier);
     }
 
@@ -187,7 +169,6 @@ public class InsertInstruction implements WebSocketInstruction {
                 .put(JSONAttributes.TYPE, TYPE.type)
                 .put(JSONAttributes.LINE_IDX, lineIndex)
                 .put(JSONAttributes.COLUMN_IDX, columnIndex)
-                .put(JSONAttributes.CHAR, String.valueOf(character))
                 .put(JSONAttributes.USER_ID, userIdentifier)
                 .toString();
     }

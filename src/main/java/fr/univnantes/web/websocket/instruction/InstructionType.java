@@ -13,7 +13,8 @@ import java.lang.reflect.InvocationTargetException;
  * </p>
  */
 public enum InstructionType {
-    INSERT("INSERT", InsertInstruction.class),
+    INSERT_CHAR("INSERT_CHAR", InsertCharInstruction.class),
+    INSERT_LINE_BRK("INSERT_LINE_BRK", InsertLineBrkInstruction.class),
     DELETE_CHAR("DELETE_CHAR", DeleteCharInstruction.class),
     DELETE_LINE_BRK("DELETE_LINE_BRK", DeleteLineBrkInstruction.class),
     CONNECT("CONNECT", ConnectInstruction.class);
@@ -76,9 +77,9 @@ public enum InstructionType {
 
         //  Parse the payload type
         JSONObject json = new JSONObject(payload);
-        if (!json.has("type")) throw new IllegalArgumentException("Does not contain a type");
+        if (!json.has(WebSocketInstruction.JSONAttributes.TYPE)) throw new IllegalArgumentException("Does not contain a type");
 
-        String type = json.getString("type");
+        String type = json.getString(WebSocketInstruction.JSONAttributes.TYPE);
         if (type == null || type.isBlank()) throw new IllegalArgumentException("Does not contain a type");
 
         InstructionType instructionType = InstructionType.fromString(type);
