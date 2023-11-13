@@ -50,6 +50,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (IllegalArgumentException e) {
             session.sendMessage(new TextMessage(generateErrorMessage(e.getMessage())));
             session.close();
+            logger.error("An error occurred while parsing the message", message, e);
             return;
         }
 
