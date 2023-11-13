@@ -374,6 +374,61 @@ public class LineNode {
     }
 
     /**
+     * Inserts a line break at the given index in the line, the index starts at 0
+     * Will split the line in two, the first part will contain the characters before the line break
+     * The second part will contain the characters after the line break
+     *
+     * @param column    the index of the line break, the index starts at 0
+     * @return      true if the line break has been inserted, false otherwise
+     */
+    public boolean insertLineBreak(int column) {
+        synchronized (this) {
+
+            //  Check if the index is valid
+            //  Cannot be negative
+            if (column < 0) return false;
+            //  The index should correspond to an existing column node
+            ColumnNode columnNode = getColumnNodeAtIndex(column);
+            if (columnNode == null) return false;
+
+            //  Split the line in two
+            //  The first part will contain the characters before the line break and remain in the current line node
+            //  The second part will contain the characters after the line break and will be moved to a new line node
+
+            ColumnNode secondPart = columnNode;
+            if (columnNode.getPrevious() != null) {
+                columnNode.getPrevious().setNext(null);
+                secondPart.setPrevious(null);
+            }
+            else {
+                content.set(null);
+            }
+
+            //  Create a new line node after the current one and link it in the document
+            LineNode newLineNode = new LineNode();
+            newLineNode.setContent(secondPart);
+            //  Link every column node to the new line node
+            ColumnNode currentColumnNode = secondPart;
+            while (currentColumnNode != null) {
+                currentColumnNode.setParent(newLineNode);
+                currentColumnNode = currentColumnNode.getNext();
+            }
+
+            //  Link the new line node to the document
+            newLineNode.setNext(this.getNext());
+            newLineNode.setPrevious(this);
+
+            //  Set link of the other nodes
+            if (this.getNext() != null) {
+                this.getNext().setPrevious(newLineNode);
+            }
+            this.setNext(newLineNode);
+
+            return true;
+        }
+    }
+
+    /**
      * Converts the line node to a string representation
      *
      * @return  the string representation of the line node

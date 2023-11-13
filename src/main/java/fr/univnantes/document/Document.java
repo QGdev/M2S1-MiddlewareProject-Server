@@ -253,6 +253,30 @@ public class Document {
     }
 
     /**
+     * Insert a line break between two lines, the selected line is split in two
+     * The first line contains the characters before the line break
+     * The second (new) line contains the characters after the line break
+     *
+     * @param line        Coordinate of the line, starts at 0
+     * @param column      Coordinate of the column, starts at 0
+     * @return      True if the line break has been inserted, false otherwise
+     */
+    public synchronized boolean insertLineBreak(int line, int column) {
+        if (line < 0 || column < 0) return false;
+
+        LineNode lineNode = getLineNode(line);
+
+        //  The requested line node does not exist
+        //  Nothing to remove
+        if (lineNode == null) return false;
+
+        boolean result = lineNode.insertLineBreak(column);
+        if (result) lineCount.incrementAndGet();
+
+        return result;
+    }
+
+    /**
      * Turns the document into a string
      * Each line is separated by a line break
      *
