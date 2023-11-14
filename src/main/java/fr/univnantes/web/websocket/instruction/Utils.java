@@ -26,8 +26,8 @@ public class Utils {
      */
     public static String generateErrorMessage(String message) {
         return new JSONObject()
-                .put("type", "ERROR")
-                .put("message", message)
+                .put(WebSocketInstruction.JSONAttributes.TYPE, "ERROR")
+                .put(WebSocketInstruction.JSONAttributes.MESSAGE, message)
                 .toString();
     }
 }

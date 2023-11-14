@@ -85,7 +85,7 @@ public class RestApiController {
         }
 
         User user = userManager.createUser(userName);
-        document.addUser(user);
+        document.addJoiningUser(user);
 
         logger.info("Document {} created by user {}", document.getUUID(), user.getUUID());
 
@@ -137,7 +137,7 @@ public class RestApiController {
         if (document == null)   return ResponseEntity.notFound().build();
 
         User user = userManager.createUser(userName);
-        document.addUser(user);
+        document.addJoiningUser(user);
 
         logger.info("Document {} joined by user {}", document.getUUID(), user.getUUID());
 

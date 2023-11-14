@@ -137,7 +137,7 @@ public class ConnectInstruction implements WebSocketInstruction {
             }
 
             //  Check if the user is registered to the document
-            if (!document.isUserInDocument(user)) {
+            if (!document.isJoiningUserInDocument(user)) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User is not registered to the document")));
                 session.close();
 
@@ -156,22 +156,28 @@ public class ConnectInstruction implements WebSocketInstruction {
                 session.sendMessage(new TextMessage(generateErrorMessage("Could not connect to the document")));
                 session.close();
 
+                //  Remove user from joining list
+                document.removeJoiningUser(user);
+
                 //  Remove the session from the session manager
                 sessionManager.removeSession(session);
                 userManager.removeUser(userIdentifier);
 
                 return false;
             }
-            //  If everything went well, send the document to the user
-            else {
-                session.sendMessage(new TextMessage(new JSONObject()
-                        .put(JSONAttributes.TYPE, CONNECT.type)
-                        .put(JSONAttributes.MESSAGE, "Connected")
-                        .put(JSONAttributes.USER_ID, userIdentifier)
-                        .put(JSONAttributes.CONTENT, document.toString())
-                        .toString()));
-                return true;
-            }
+            //  If everything went well, move the user from the joining list to the user list
+            document.removeJoiningUser(user);
+            document.addUser(user);
+
+            //  And send the document to the user
+            session.sendMessage(new TextMessage(new JSONObject()
+                    .put(JSONAttributes.TYPE, CONNECT.type)
+                    .put(JSONAttributes.MESSAGE, "Connected")
+                    .put(JSONAttributes.USER_ID, userIdentifier)
+                    .put(JSONAttributes.CONTENT, document.toString())
+                    .toString()));
+            return true;
+
         };
     }
 

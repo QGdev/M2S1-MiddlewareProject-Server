@@ -68,24 +68,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
                             userManager)
                     .call();
         } catch (Exception e) {
-            session.sendMessage(new TextMessage(new JSONObject()
-                    .put("type", "ERROR")
-                    .put("message", "An error occurred while executing the instruction")
-                    .put("instruction", parsedInstruction)
-                    .toString()));
+            session.sendMessage(new TextMessage(generateErrorMessage("An error occurred while executing the instruction. Cause: " + e.getMessage())));
             logger.error("An error occurred while executing the instruction", e);
             return;
         }
 
         //  Send an OK message to the user letting him know that the instruction was executed
-        if (!didOperationSucceeded) {
-            session.sendMessage(new TextMessage(new JSONObject()
-                    .put("type", "ERROR")
-                    .put("message", "Operation failed")
-                    .put("instruction", parsedInstruction)
-                    .toString()));
-            return;
-        }
+        if (!didOperationSucceeded) return;
 
         //  Retrieve the document and broadcast the message to all users
         String documentId = webSocketSessionManager.getDocumentId(session);
@@ -99,6 +88,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     u.getSession().sendMessage(broadcastMessage);
             }
         }
+        logger.info(document.toString().replaceAll("\n", "BRK"));
     }
 
     /**

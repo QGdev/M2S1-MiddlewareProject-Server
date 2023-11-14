@@ -18,7 +18,9 @@ public class Document {
 
     private final String uuid;
     private String name;
-    private ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, User> joiningUsers = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
     private final AtomicInteger lineCount = new AtomicInteger(1);
 
     private final LineNode content;
@@ -134,6 +136,7 @@ public class Document {
     /**
      * Remove a user from the document
      * @param user  The user to remove
+     * @return      True if the user has been removed, false otherwise
      */
     public boolean removeUser(User user) {
         if (user == null) throw new IllegalArgumentException("User is null");
@@ -144,11 +147,46 @@ public class Document {
     /**
      * Check if a user is in the document
      * @param user  The user to check
+     * @return     True if the user is in the document, false otherwise
      */
     public boolean isUserInDocument(User user) {
         if (user == null) throw new IllegalArgumentException("User is null");
 
         return users.containsKey(user.getUUID());
+    }
+
+    /**
+     * Add a future user to the document
+     * @param user  The user to add
+     * @return      True if the user has been added, false otherwise
+     */
+    public boolean addJoiningUser(User user) {
+        if (user == null) throw new IllegalArgumentException("User is null");
+        if (joiningUsers.containsKey(user.getUUID())) return false;
+
+        return joiningUsers.put(user.getUUID(), user) == null;
+    }
+
+    /**
+     * Remove a future user from the document
+     * @param user  The user to remove
+     * @return      True if the user has been removed, false otherwise
+     */
+    public boolean removeJoiningUser(User user) {
+        if (user == null) throw new IllegalArgumentException("User is null");
+
+        return joiningUsers.remove(user.getUUID()) != null;
+    }
+
+    /**
+     * Check if a future user is in the document
+     * @param user  The user to check
+     * @return     True if the user is in the document, false otherwise
+     */
+    public boolean isJoiningUserInDocument(User user) {
+        if (user == null) throw new IllegalArgumentException("User is null");
+
+        return joiningUsers.containsKey(user.getUUID());
     }
 
     /**
