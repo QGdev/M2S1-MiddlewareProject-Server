@@ -185,7 +185,7 @@ public class ColumnNode {
     /**
      * Returns the character and acquires the lock
      *
-     * @return the character
+     * @param character the character
      */
     public void setCharacter(char character) {
         synchronized (this) {

@@ -6,7 +6,14 @@ import fr.univnantes.document.LineNode;
 import org.junit.jupiter.api.Test;
 
 public class LineNodeTest {
-
+    /**
+     * Test the insert() method of LineNode by verifying the correct insertion
+     * of characters at specified positions within the line.
+     * <p>
+     * This test creates a LineNode, inserts characters at different positions,
+     * and asserts that the resulting string representation is as expected.
+     * </p>
+     */
     @Test
     public void testInsert() {
         LineNode lineNode = new LineNode();
@@ -22,6 +29,14 @@ public class LineNodeTest {
         assertFalse(lineNode.insert(-1, 'D'));
     }
 
+    /**
+     * Test the modify() method of LineNode by verifying the correct modification
+     * of characters at specified positions within the line.
+     * <p>
+     * This test creates a LineNode, inserts a character, modifies it,
+     * and asserts that the resulting string representation is as expected.
+     * </p>
+     */
     @Test
     public void testModify() {
         LineNode lineNode = new LineNode();
@@ -33,6 +48,14 @@ public class LineNodeTest {
         assertFalse(lineNode.modify(1, 'D'));
     }
 
+    /**
+     * Test the delete() method of LineNode by verifying the correct deletion
+     * of characters at specified positions within the line.
+     * <p>
+     * This test creates a LineNode, inserts a character, deletes it,
+     * and asserts that the resulting string representation is as expected.
+     * </p>
+     */
     @Test
     public void testDelete() {
         LineNode lineNode = new LineNode();
@@ -44,6 +67,14 @@ public class LineNodeTest {
         assertFalse(lineNode.delete(0));
     }
 
+    /**
+     * Test the deleteLineBreak() method of LineNode by verifying the correct deletion
+     * of the line break between two LineNode instances.
+     * <p>
+     * This test creates two LineNode instances, inserts characters, sets one as
+     * the next node of the other, deletes the line break, and asserts the result.
+     * </p>
+     */
     @Test
     public void testDeleteLineBreak() {
         LineNode lineNode1 = new LineNode();
@@ -56,6 +87,14 @@ public class LineNodeTest {
         assertEquals("AB\n", lineNode1.toString());
     }
 
+    /**
+     * Test the insertLineBreak() method of LineNode by verifying the correct insertion
+     * of a line break at a specified position within the line.
+     * <p>
+     * This test creates a LineNode, inserts a character, inserts a line break,
+     * and asserts that the resulting string representation is as expected.
+     * </p>
+     */
     @Test
     public void testInsertLineBreak() {
         LineNode lineNode = new LineNode();
@@ -65,5 +104,6 @@ public class LineNodeTest {
         assertFalse(lineNode.insertLineBreak(-1));
         assertFalse(lineNode.insertLineBreak(1));
     }
+
 
 }
