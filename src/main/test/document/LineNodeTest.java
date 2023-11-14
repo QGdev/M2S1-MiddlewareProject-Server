@@ -66,5 +66,4 @@ public class LineNodeTest {
         assertFalse(lineNode.insertLineBreak(1));
     }
 
-
 }
