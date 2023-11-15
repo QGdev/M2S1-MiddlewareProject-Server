@@ -20,6 +20,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
      * Registers the websocket handler.
      * @param registry  The websocket handler registry
      */
+    //  TODO:   CROSS ORIGIN, NEED TO NARROW IT DOWN TO THE FRONTEND, NOW JUST ACCEPTS EVERYTHING FOR TESTING PURPOSES
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new WebSocketHandler(), "/ws").setAllowedOrigins("*");
