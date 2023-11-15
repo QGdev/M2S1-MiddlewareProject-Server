@@ -53,7 +53,7 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
         String type = json.getString(JSONAttributes.TYPE);
         if (type == null) throw new IllegalArgumentException("Does not contain a type");
 
-        if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not INSERT");
+        if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not " + TYPE.type);
 
         //  Parse the payload lineIndex
         if (!json.has(JSONAttributes.LINE_IDX)) throw new IllegalArgumentException("Does not contain a lineIdx");
@@ -104,7 +104,7 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
      * @return The user identifier
      */
     @Override
-    public String getUserIdentifier() {
+    public String getUserId() {
         return userIdentifier;
     }
 
@@ -121,25 +121,35 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
     @Override
     public Callable<Boolean> getCallable(WebSocketSessionManager sessionManager, WebSocketSession session, DocumentManager documentManager, UserManager userManager, Object... args) {
         return () -> {
+            //  Verify that the user is connected
             if (!sessionManager.isAlreadyConnected(session)) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User is not connected")));
                 return false;
             }
 
-            String docId = sessionManager.getDocumentId(session);
+            //  Verify that the user is connected to a document
+            String documentIdentifier = sessionManager.getDocumentId(session);
 
-            if (docId == null) {
+            if (documentIdentifier == null) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User is not connected to a document")));
                 return false;
             }
 
-            Document document = documentManager.getDocument(docId);
-
+            //  Verify that the document exists
+            Document document = documentManager.getDocument(documentIdentifier);
+            //  If the document does not exist, unlink the user, close the session and return false
             if (document == null) {
                 session.sendMessage(new TextMessage(generateErrorMessage("Document does not exist")));
+                session.close();
+
+                //  Remove the session from the session manager
+                sessionManager.removeSession(session);
+                userManager.removeUser(userIdentifier);
+
                 return false;
             }
 
+            //  Insert the line break
             return document.insertLineBreak(lineIndex, columnIndex);
         };
     }

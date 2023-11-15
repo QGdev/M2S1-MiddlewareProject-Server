@@ -57,7 +57,7 @@ public class ConnectInstruction implements WebSocketInstruction {
         String type = json.getString(JSONAttributes.TYPE);
         if (type == null) throw new IllegalArgumentException("Does not contain a type");
 
-        if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not INSERT");
+        if (!type.equals(TYPE.type)) throw new IllegalArgumentException("Type is not " + TYPE.type);
 
         //  Parse the payload userIdentifier
         if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
@@ -86,7 +86,7 @@ public class ConnectInstruction implements WebSocketInstruction {
      * @return The user identifier
      */
     @Override
-    public String getUserIdentifier() {
+    public String getUserId() {
         return userIdentifier;
     }
 
@@ -111,7 +111,7 @@ public class ConnectInstruction implements WebSocketInstruction {
 
             //  Verify that the user
             User user = userManager.getUser(userIdentifier);
-
+            //  If the document does not exist, unlink the user, close the session and return false
             if (user == null) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User does not exist")));
                 session.close();
