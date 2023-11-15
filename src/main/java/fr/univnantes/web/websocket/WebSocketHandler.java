@@ -5,7 +5,6 @@ import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
 import fr.univnantes.document.Document;
 import fr.univnantes.web.websocket.instruction.*;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
@@ -15,9 +14,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Map;
 
 import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
-
 
 /**
  * WebSocketHandler
@@ -50,8 +50,40 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (IllegalArgumentException e) {
             session.sendMessage(new TextMessage(generateErrorMessage(e.getMessage())));
             session.close();
-            logger.error("An error occurred while parsing the message", message, e);
+            logger.error("An error occurred while parsing the message {}, {}", message.getPayload(), e.getMessage());
             return;
+        }
+
+        //  Get instruction type
+        InstructionType instructionType = parsedInstruction.getType();
+
+        //  Before executing the instruction, check if the user
+        if (instructionType.requiresActionTargetCheck) {
+            String instructionUserId = parsedInstruction.getUserId();
+            String sessionUserId = webSocketSessionManager.getUserId(session);
+
+            //  If the instruction does not contain a user identifier, send an error message to the user and close the session
+            if (instructionUserId == null) {
+                session.sendMessage(new TextMessage(generateErrorMessage("Instruction does not contain a user identifier")));
+                session.close();
+                return;
+            }
+
+            //  If the user is not connected, send an error message to the user and close the session
+            if (sessionUserId == null) {
+                session.sendMessage(new TextMessage(generateErrorMessage("User is not connected")));
+                session.close();
+                return;
+            }
+
+            //  Check if the provided user identifier is the same as the one registered for the session
+            if (!instructionUserId.equals(sessionUserId)) {
+                session.sendMessage(new TextMessage(generateErrorMessage("User identifier does not match the one registered for the session")));
+                session.close();
+                logger.warn("User {}, tried to execute {} with user identifier {}", sessionUserId, instructionType.type, instructionUserId);
+                return;
+            }
+
         }
 
         //  Execute the instruction depending on its type
@@ -69,12 +101,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     .call();
         } catch (Exception e) {
             session.sendMessage(new TextMessage(generateErrorMessage("An error occurred while executing the instruction. Cause: " + e.getMessage())));
-            logger.error("An error occurred while executing the instruction", e);
+            logger.error("An error occurred while executing the instruction. Cause: {}", e.getMessage());
             return;
         }
 
-        //  Send an OK message to the user letting him know that the instruction was executed
+        //  If the operation failed, do not broadcast the message
         if (!didOperationSucceeded) return;
+
+        //  If the instruction is a broadcast instruction, broadcast the message to all users
+        if (!instructionType.needsBroadcast)  return;
 
         //  Retrieve the document and broadcast the message to all users
         String documentId = webSocketSessionManager.getDocumentId(session);
@@ -88,7 +123,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     u.getSession().sendMessage(broadcastMessage);
             }
         }
-        logger.info(document.toString().replaceAll("\n", "BRK"));
     }
 
     /**
@@ -102,22 +136,58 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
 
-        //  Search for the user and the document in memory
-        String userId = webSocketSessionManager.getUserId(session);
+        //  Search for the document in memory
         String documentId = webSocketSessionManager.getDocumentId(session);
+        String userIdentifier = webSocketSessionManager.getUserId(session);
 
-        if (userId != null) {
-            User user = userManager.getUser(userId);
-            userManager.removeUser(userId);
-            if (documentId != null) {
-                Document document = documentManager.getDocument(documentId);
-                document.removeUser(user);
-                //  TODO: NEED TO SETTLE ON THE BEHAVIOR OF THE DOCUMENT WHEN ALL USERS ARE DISCONNECTED
-                //if (document.getUsers().isEmpty()) {
-                //    documentManager.removeDocument(documentId);
-                //}
-                webSocketSessionManager.removeSession(session);
+        //  If the user is not connected, there is nothing we can do
+        if (userIdentifier == null) return;
+
+        //  If there is no document, remove the user from the user manager and remove the session from the session manager
+        if (documentId == null) {
+            userManager.removeUser(userIdentifier);
+            webSocketSessionManager.removeSession(session);
+            return;
+        }
+
+        //  Fetch the document and the user
+        Document document = documentManager.getDocument(documentId);
+        User user = userManager.getUser(userIdentifier);
+
+        //  If the document does not exist, remove the user from the user manager and remove the session from the session manager
+        if (document == null) {
+            userManager.removeUser(userIdentifier);
+            webSocketSessionManager.removeSession(session);
+            return;
+        }
+
+        //  If the user does exist, remove it from the document
+        if (user != null)   document.removeUser(user);
+
+        //  Remove the session from the session manager and user from the user manager
+        webSocketSessionManager.removeSession(session);
+        userManager.removeUser(userIdentifier);
+
+        //  Get the list of users in the document and broadcast the message to all users
+        Map<String, User> usersMap = document.getUsers();
+        List<User> users = List.copyOf(usersMap.values());
+
+        //  TODO:   NEED TO DECIDE WHAT TO DO WHEN A USER LEAVES AND THERE ARE NO USERS LEFT IN THE DOCUMENT
+        //  If there are no users left in the document, remove the document from the document manager
+        if (users.isEmpty()) {
+            //documentManager.removeDocument(documentId);
+            return;
+        }
+
+        //  Broadcast the message to all users but not the user who sent the message
+        String message = DisconnectInstruction.generateBroadcastMessage(userIdentifier);
+
+        //  Broadcast the message to all users that are still connected
+        for (User u : users) {
+            if (u.getSession() != null && u.getSession().isOpen()) {
+                u.getSession().sendMessage(new TextMessage(message));
             }
         }
+        logger.info("User {} disconnected from document {}", userIdentifier, documentId);
     }
 }

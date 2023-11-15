@@ -31,6 +31,7 @@ public interface WebSocketInstruction {
         public static final String LINE_IDX = "lineIdx";
         public static final String COLUMN_IDX = "columnIdx";
         public static final String CHAR = "char";
+        public static final String NEW_DOC_NAME = "newName";
 
         /**
          * Private constructor to prevent instantiation.
@@ -50,7 +51,7 @@ public interface WebSocketInstruction {
      * Returns the user identifier of the instruction.
      * @return The user identifier.
      */
-    String getUserIdentifier();
+    String getUserId();
 
     /**
      * Returns a callable that will execute the instruction.

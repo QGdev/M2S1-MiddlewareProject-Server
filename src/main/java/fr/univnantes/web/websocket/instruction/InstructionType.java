@@ -13,23 +13,32 @@ import java.lang.reflect.InvocationTargetException;
  * </p>
  */
 public enum InstructionType {
-    INSERT_CHAR("INSERT_CHAR", InsertCharInstruction.class),
-    INSERT_LINE_BRK("INSERT_LINE_BRK", InsertLineBrkInstruction.class),
-    DELETE_CHAR("DELETE_CHAR", DeleteCharInstruction.class),
-    DELETE_LINE_BRK("DELETE_LINE_BRK", DeleteLineBrkInstruction.class),
-    CONNECT("CONNECT", ConnectInstruction.class);
+    INSERT_CHAR("INSERT_CHAR", true, true, InsertCharInstruction.class),
+    INSERT_LINE_BRK("INSERT_LINE_BRK", true, true, InsertLineBrkInstruction.class),
+    DELETE_CHAR("DELETE_CHAR", true, true, DeleteCharInstruction.class),
+    DELETE_LINE_BRK("DELETE_LINE_BRK", true, true, DeleteLineBrkInstruction.class),
+    CONNECT("CONNECT", false, true, ConnectInstruction.class),
+    CHANGE_DOC_NAME("CHANGE_DOC_NAME", true, true, ChangeDocNameInstruction.class),
+    DISCONNECT("DISCONNECT", true, false, DisconnectInstruction.class);
 
     public final String type;
+    public final boolean requiresActionTargetCheck;
+    public final boolean needsBroadcast;
     public final Class<? extends WebSocketInstruction> instructionClass;
 
     /**
      * Creates a new instruction type
      *
      * @param type              The type of the instruction
-     * @param instructionClass  The class of the instruction which extends WebSocketInstruction
+     * @param requiresActionTargetCheck Whether the instruction requires an action target check or not
+     *                                  (The user action can only be performed on the user not on another user)
+     * @param needsBroadcast            Whether the instruction needs to be broadcasted to all users or not after execution
+     * @param instructionClass          The class of the instruction which extends WebSocketInstruction
      */
-    InstructionType(String type, Class<? extends WebSocketInstruction> instructionClass) {
+    InstructionType(String type, boolean requiresActionTargetCheck, boolean needsBroadcast, Class<? extends WebSocketInstruction> instructionClass) {
         this.type = type;
+        this.requiresActionTargetCheck = requiresActionTargetCheck;
+        this.needsBroadcast = needsBroadcast;
         this.instructionClass = instructionClass;
     }
 
