@@ -30,4 +30,30 @@ public class Utils {
                 .put(WebSocketInstruction.JSONAttributes.MESSAGE, message)
                 .toString();
     }
+
+    /**
+     * Generates a warning message from a string.
+     *
+     * @param message The warning message
+     * @return The warning message as a JSON string
+     */
+    public static String generateWarnMessage(String message) {
+        return new JSONObject()
+                .put(WebSocketInstruction.JSONAttributes.TYPE, "WARN")
+                .put(WebSocketInstruction.JSONAttributes.MESSAGE, message)
+                .toString();
+    }
+
+    /**
+     * Generates an info message from a string.
+     *
+     * @param message The info message
+     * @return The info message as a JSON string
+     */
+    public static String generateInfoMessage(String message) {
+        return new JSONObject()
+                .put(WebSocketInstruction.JSONAttributes.TYPE, "INFO")
+                .put(WebSocketInstruction.JSONAttributes.MESSAGE, message)
+                .toString();
+    }
 }
