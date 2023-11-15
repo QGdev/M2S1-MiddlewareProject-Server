@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 
+import static fr.univnantes.document.Document.isDocumentNameValid;
 import static fr.univnantes.web.rest.Utils.createJSONUserDocument;
 
 /**
@@ -75,6 +76,7 @@ public class RestApiController {
         if (documentName.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - Document name is empty");
         if (userName.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - User name is empty");
 
+        if (!isDocumentNameValid(documentName)) return ResponseEntity.badRequest().body("HTTP 400 - Document name is invalid");
 
         Document document = documentManager.createDocument(documentName);
 
