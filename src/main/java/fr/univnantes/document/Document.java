@@ -2,6 +2,7 @@ package fr.univnantes.document;
 
 import fr.univnantes.user.User;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,13 +31,16 @@ public class Document {
      *
      * @param name      The name of the document
      *                  Must not be null or empty
+     * @throws IllegalArgumentException If the name is null or empty
+     * @throws IllegalArgumentException If the name is not valid like specified in {@link Document#isDocumentNameValid(String)}
      */
     public Document(String name) {
         if (name == null) throw new IllegalArgumentException("Document name is null");
         if (name.isEmpty()) throw new IllegalArgumentException("Document name is empty");
+        if (!isDocumentNameValid(name)) throw new IllegalArgumentException("Document name is not valid");
 
         this.name = name;
-        uuid = java.util.UUID.randomUUID().toString();
+        uuid = UUID.randomUUID().toString();
         content = new LineNode();
     }
 
@@ -109,8 +113,14 @@ public class Document {
     /**
      * Update the name of the document
      * @param name  The new name of the document
+     * @throws IllegalArgumentException If the name is null or empty
+     * @throws IllegalArgumentException If the name is not valid like specified in {@link Document#isDocumentNameValid(String)}
      */
     public void setName(String name) {
+        if (name == null) throw new IllegalArgumentException("Document name is null");
+        if (name.isEmpty()) throw new IllegalArgumentException("Document name is empty");
+        if (isDocumentNameValid(name)) throw new IllegalArgumentException("Document name is not valid");
+
         this.name = name;
     }
 
@@ -333,5 +343,55 @@ public class Document {
             sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
+    }
+
+    /**
+     * Used to check if the document name is valid.
+     * Validations are:
+     * <ul>
+     *     <li>Not null</li>
+     *     <li>Not empty</li>
+     *     <li>Not blank</li>
+     *     <li>Not longer than 255 characters</li>
+     *     <li>Does not contains: </li>
+     *     <ul>
+     *         <li>\</li>
+     *         <li>/</li>
+     *         <li>:</li>
+     *         <li>*</li>
+     *         <li>?</li>
+     *         <li>"</li>
+     *         <li>&lt;</li>
+     *         <li>&gt;</li>
+     *         <li>|</li>
+     *         <li>\n</li>
+     *         <li>\t</li>
+     *         <li>\r</li>
+     *         <li>\b</li>
+     *         <li>\f</li>
+     *         <li>'</li>
+     *         <li>`</li>
+     *         <li>Space</li>
+     *    </ul>
+     *    </ul>
+     *    @param name The name to check
+     *    @return True if the name is valid, false otherwise
+     */
+    public static boolean isDocumentNameValid(String name) {
+        //  Checks if name is null, empty or blank
+        if (name == null) return false;
+        if (name.isEmpty()) return false;
+        if (name.isBlank()) return false;
+        if (name.length() > 255) return false;
+
+        //  Checks if name contains special characters
+        char[] verifiedChars = new char[]{'\\', '/', ':', '*', '?', '"', '<', '>', '|', '\n', '\t', '\r', '\b', '\f', '\'', '`', ' '};
+
+        for (char c : verifiedChars) {
+            if (name.contains(String.valueOf(c))) return false;
+        }
+
+        return true;
+
     }
 }
