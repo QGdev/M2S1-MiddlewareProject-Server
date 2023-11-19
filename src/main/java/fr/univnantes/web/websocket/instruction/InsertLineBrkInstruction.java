@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.INSERT_LINE_BRK;
@@ -33,7 +34,7 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
     private static final InstructionType TYPE = INSERT_LINE_BRK;
     private final int lineIndex;
     private final int columnIndex;
-    private final String userIdentifier;
+    private final UUID userIdentifier;
 
     /**
      * Creates a new insert line break instruction
@@ -71,7 +72,7 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
         if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
         String userId = json.getString(JSONAttributes.USER_ID);
         if (userId == null) throw new IllegalArgumentException("userId is null");
-        this.userIdentifier = userId;
+        this.userIdentifier = UUID.fromString(userId);
     }
 
     /**
@@ -104,7 +105,7 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
      * @return The user identifier
      */
     @Override
-    public String getUserId() {
+    public UUID getUserId() {
         return userIdentifier;
     }
 
@@ -128,7 +129,7 @@ public class InsertLineBrkInstruction implements WebSocketInstruction {
             }
 
             //  Verify that the user is connected to a document
-            String documentIdentifier = sessionManager.getDocumentId(session);
+            UUID documentIdentifier = sessionManager.getDocumentId(session);
 
             if (documentIdentifier == null) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User is not connected to a document")));

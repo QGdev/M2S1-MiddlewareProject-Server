@@ -1,9 +1,10 @@
 package fr.univnantes.web.rest;
 
-import org.json.JSONObject;
-
 import fr.univnantes.document.Document;
 import fr.univnantes.user.User;
+import org.json.JSONObject;
+
+import java.util.UUID;
 
 /**
  * Utils
@@ -35,7 +36,7 @@ public class Utils {
      *              "content": "documentContent"
      *          }
      */
-    public static JSONObject createJSONDocument(String documentId, String documentName, String documentContent) {
+    public static JSONObject createJSONDocument(UUID documentId, String documentName, String documentContent) {
         JSONObject documentJSON = new JSONObject();
         documentJSON.put("id", documentId);
         documentJSON.put("name", documentName);
@@ -71,7 +72,7 @@ public class Utils {
      *              "name": "username"
      *          }
      */
-    public static JSONObject createJSONUser(String userId, String username) {
+    public static JSONObject createJSONUser(UUID userId, String username) {
         JSONObject userJSON = new JSONObject();
         userJSON.put("id", userId);
         userJSON.put("name", username);
@@ -115,7 +116,7 @@ public class Utils {
      *                      }
      *                  }
      */
-    public static JSONObject createJSONUserDocument(String userId, String username, String documentId, String documentName, String documentContent) {
+    public static JSONObject createJSONUserDocument(UUID userId, String username, UUID documentId, String documentName, String documentContent) {
         JSONObject returnedJSON = new JSONObject();
         returnedJSON.put("document", createJSONDocument(documentId, documentName, documentContent));
         returnedJSON.put("user", createJSONUser(userId, username));

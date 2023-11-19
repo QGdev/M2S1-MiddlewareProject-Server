@@ -11,6 +11,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.CONNECT;
@@ -36,8 +37,8 @@ import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage
 public class ConnectInstruction implements WebSocketInstruction {
 
     private static final InstructionType TYPE = CONNECT;
-    private final String userIdentifier;
-    private final String documentIdentifier;
+    private final UUID userIdentifier;
+    private final UUID documentIdentifier;
 
     /**
      * Creates a new insert instruction
@@ -62,14 +63,14 @@ public class ConnectInstruction implements WebSocketInstruction {
         //  Parse the payload userIdentifier
         if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
         String userId = json.getString(JSONAttributes.USER_ID);
-        if (userId == null) throw new IllegalArgumentException("userIdentifier is null");
-        this.userIdentifier = userId;
+        if (userId == null) throw new IllegalArgumentException("userId is null");
+        this.userIdentifier = UUID.fromString(userId);
 
         //  Parse the payload documentIdentifier
         if (!json.has(JSONAttributes.DOC_ID)) throw new IllegalArgumentException("Does not contain a docId");
         String documentId = json.getString(JSONAttributes.DOC_ID);
         if (documentId == null) throw new IllegalArgumentException("docIdentifier is null");
-        this.documentIdentifier = documentId;
+        this.documentIdentifier = UUID.fromString(documentId);
     }
 
     /**
@@ -86,7 +87,7 @@ public class ConnectInstruction implements WebSocketInstruction {
      * @return The user identifier
      */
     @Override
-    public String getUserId() {
+    public UUID getUserId() {
         return userIdentifier;
     }
 
@@ -208,7 +209,7 @@ public class ConnectInstruction implements WebSocketInstruction {
         if (document == null) throw new IllegalStateException("Document is null");
 
         //  Get the user map
-        Map<String, User> userMap = document.getUsers();
+        Map<UUID, User> userMap = document.getUsers();
         if (userMap == null) throw new IllegalStateException("User map is null");
 
         // Generate the user list

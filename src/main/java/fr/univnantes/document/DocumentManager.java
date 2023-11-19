@@ -1,5 +1,6 @@
 package fr.univnantes.document;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -13,14 +14,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DocumentManager {
 
     private static final AtomicReference<DocumentManager> instance = new AtomicReference<>(null);
-    private final ConcurrentHashMap<String, Document> documents;
+    private final ConcurrentHashMap<UUID, Document> documents;
 
 
     /**
      * Creates a new document manager
      */
     private DocumentManager() {
-        documents = new ConcurrentHashMap<>();
+        documents = new ConcurrentHashMap<java.util.UUID, Document>();
     }
 
     /**
@@ -44,7 +45,7 @@ public class DocumentManager {
      * @param documentId    The UUID of the document
      * @return              The document with the given UUID
      */
-    public Document getDocument(String documentId) {
+    public Document getDocument(UUID documentId) {
         return documents.get(documentId);
     }
 
@@ -66,7 +67,7 @@ public class DocumentManager {
      * @param documentId    The UUID of the document
      * @return              True if the document was removed, false otherwise
      */
-    public boolean removeDocument(String documentId) {
+    public boolean removeDocument(UUID documentId) {
         return documents.remove(documentId) != null;
     }
 

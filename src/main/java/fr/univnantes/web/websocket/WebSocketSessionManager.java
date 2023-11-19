@@ -2,6 +2,7 @@ package fr.univnantes.web.websocket;
 
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -13,15 +14,15 @@ import java.util.concurrent.atomic.AtomicReference;
 public class WebSocketSessionManager {
 
     private static final  AtomicReference<WebSocketSessionManager> instance = new AtomicReference<>(null);
-    private final ConcurrentHashMap<WebSocketSession, String> documentsSessions;
-    private final ConcurrentHashMap<WebSocketSession, String> sessionToUser;
-    private final ConcurrentHashMap<String, WebSocketSession> userToSession;
+    private final ConcurrentHashMap<WebSocketSession, UUID> documentsSessions;
+    private final ConcurrentHashMap<WebSocketSession, UUID> sessionToUser;
+    private final ConcurrentHashMap<UUID, WebSocketSession> userToSession;
 
     /**
      * Creates a new WebSocketSessionManager
      */
     private WebSocketSessionManager() {
-        documentsSessions = new ConcurrentHashMap<>();
+        documentsSessions = new ConcurrentHashMap<WebSocketSession, java.util.UUID>();
         sessionToUser = new ConcurrentHashMap<>();
         userToSession = new ConcurrentHashMap<>();
     }
@@ -48,7 +49,7 @@ public class WebSocketSessionManager {
      * @param userId        The user id of the session
      * @return          True if the session was added, false otherwise
      */
-    public boolean addSession(WebSocketSession session, String documentId, String userId) {
+    public boolean addSession(WebSocketSession session, UUID documentId, UUID userId) {
         synchronized (WebSocketSessionManager.class) {
             if (documentsSessions.containsKey(session) || sessionToUser.containsKey(session)) {
                 return false;
@@ -75,7 +76,7 @@ public class WebSocketSessionManager {
             documentsSessions.remove(session);
 
             if (sessionToUser.containsKey(session)) {
-                String userId = sessionToUser.remove(session);
+                UUID userId = sessionToUser.remove(session);
                 if (userId != null) {
                     userToSession.remove(userId);
                 }
@@ -91,7 +92,7 @@ public class WebSocketSessionManager {
      * @param session   The session to get the document id from
      * @return          The document id of the session, null if the session is not in the WebSocketSessionManager
      */
-    public String getDocumentId(WebSocketSession session) {
+    public UUID getDocumentId(WebSocketSession session) {
         return documentsSessions.get(session);
     }
 
@@ -101,7 +102,7 @@ public class WebSocketSessionManager {
      * @param session   The session to get the user id from
      * @return          The user id of the session, null if the session is not in the WebSocketSessionManager
      */
-    public String getUserId(WebSocketSession session) {
+    public UUID getUserId(WebSocketSession session) {
         return sessionToUser.get(session);
     }
 
@@ -111,7 +112,7 @@ public class WebSocketSessionManager {
      * @param userId   The user id to get the session from
      * @return          The session of the user, null if the user is not in the WebSocketSessionManager
      */
-    public WebSocketSession getSession(String userId) {
+    public WebSocketSession getSession(UUID userId) {
         return userToSession.get(userId);
     }
 
@@ -121,7 +122,7 @@ public class WebSocketSessionManager {
      * @param userId    The user id to get the document id from
      * @return          The document id of the user, null if the user is not in the WebSocketSessionManager
      */
-    public String getDocumentId(String userId) {
+    public UUID getDocumentId(UUID userId) {
         WebSocketSession session = getSession(userId);
         if (session == null)    return null;
 

@@ -9,9 +9,11 @@ import org.json.JSONObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import static fr.univnantes.web.websocket.instruction.Utils.*;
+import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
+import static fr.univnantes.web.websocket.instruction.Utils.generateInfoMessage;
 
 /**
  * Represents a websocket user disconnection instruction.
@@ -28,7 +30,7 @@ import static fr.univnantes.web.websocket.instruction.Utils.*;
 public class DisconnectInstruction implements WebSocketInstruction {
 
     private static final InstructionType TYPE = InstructionType.DISCONNECT;
-    private final String userIdentifier;
+    private final UUID userIdentifier;
 
     /**
      * Creates a new document name change instruction
@@ -54,7 +56,7 @@ public class DisconnectInstruction implements WebSocketInstruction {
         if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
         String userId = json.getString(JSONAttributes.USER_ID);
         if (userId == null) throw new IllegalArgumentException("userId is null");
-        this.userIdentifier = userId;
+        this.userIdentifier = UUID.fromString(userId);
     }
 
     /**
@@ -73,7 +75,7 @@ public class DisconnectInstruction implements WebSocketInstruction {
      * @return The user identifier
      */
     @Override
-    public String getUserId() {
+    public UUID getUserId() {
         return userIdentifier;
     }
 
@@ -97,8 +99,8 @@ public class DisconnectInstruction implements WebSocketInstruction {
             }
 
             //  Check if the user is connected to a document
-            String documentId = sessionManager.getDocumentId(session);
-            String userId = sessionManager.getUserId(session);
+            UUID documentId = sessionManager.getDocumentId(session);
+            UUID userId = sessionManager.getUserId(session);
 
             if (documentId == null || userId == null) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User is not connected to a document")));
@@ -163,7 +165,7 @@ public class DisconnectInstruction implements WebSocketInstruction {
      * @param userIdentifier    userIdentifier of the disconnected user
      * @return  The resulting JSON String
      */
-    public static String generateBroadcastMessage(String userIdentifier) {
+    public static String generateBroadcastMessage(UUID userIdentifier) {
         return new JSONObject()
                 .put(JSONAttributes.TYPE, TYPE.type)
                 .put(JSONAttributes.USER_ID, userIdentifier)

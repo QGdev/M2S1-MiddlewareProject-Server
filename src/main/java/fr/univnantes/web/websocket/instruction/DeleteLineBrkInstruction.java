@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static fr.univnantes.web.websocket.instruction.InstructionType.DELETE_LINE_BRK;
@@ -32,7 +33,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
 
     private static final InstructionType TYPE = DELETE_LINE_BRK;
     private final int lineIndex;
-    private final String userIdentifier;
+    private final UUID userIdentifier;
 
     /**
      * Creates a line break delete instruction
@@ -64,7 +65,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
         if (!json.has(JSONAttributes.USER_ID)) throw new IllegalArgumentException("Does not contain a userId");
         String userId = json.getString(JSONAttributes.USER_ID);
         if (userId == null) throw new IllegalArgumentException("userId is null");
-        this.userIdentifier = userId;
+        this.userIdentifier = UUID.fromString(userId);
     }
 
     /**
@@ -89,7 +90,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
      * @return The user identifier
      */
     @Override
-    public String getUserId() {
+    public UUID getUserId() {
         return userIdentifier;
     }
 
@@ -113,7 +114,7 @@ public class DeleteLineBrkInstruction implements WebSocketInstruction {
             }
 
             //  Check if the user is connected to a document
-            String documentIdentifier = sessionManager.getDocumentId(session);
+            UUID documentIdentifier = sessionManager.getDocumentId(session);
 
             if (documentIdentifier == null) {
                 session.sendMessage(new TextMessage(generateErrorMessage("User is not connected to a document")));

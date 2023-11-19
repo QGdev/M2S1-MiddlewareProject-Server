@@ -1,10 +1,12 @@
 package fr.univnantes.web.websocket;
 
+import fr.univnantes.document.Document;
 import fr.univnantes.document.DocumentManager;
 import fr.univnantes.user.User;
 import fr.univnantes.user.UserManager;
-import fr.univnantes.document.Document;
-import fr.univnantes.web.websocket.instruction.*;
+import fr.univnantes.web.websocket.instruction.DisconnectInstruction;
+import fr.univnantes.web.websocket.instruction.InstructionType;
+import fr.univnantes.web.websocket.instruction.WebSocketInstruction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static fr.univnantes.web.websocket.instruction.Utils.generateErrorMessage;
 
@@ -59,8 +62,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         //  Before executing the instruction, check if the user
         if (instructionType.requiresActionTargetCheck) {
-            String instructionUserId = parsedInstruction.getUserId();
-            String sessionUserId = webSocketSessionManager.getUserId(session);
+            UUID instructionUserId = parsedInstruction.getUserId();
+            UUID sessionUserId = webSocketSessionManager.getUserId(session);
 
             //  If the instruction does not contain a user identifier, send an error message to the user and close the session
             if (instructionUserId == null) {
@@ -112,7 +115,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (!instructionType.needsBroadcast)  return;
 
         //  Retrieve the document and broadcast the message to all users
-        String documentId = webSocketSessionManager.getDocumentId(session);
+        UUID documentId = webSocketSessionManager.getDocumentId(session);
         Document document = documentManager.getDocument(documentId);
 
         TextMessage broadcastMessage = new TextMessage(parsedInstruction.getBroadcastVersion().toString());
@@ -137,8 +140,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
         super.afterConnectionClosed(session, status);
 
         //  Search for the document in memory
-        String documentId = webSocketSessionManager.getDocumentId(session);
-        String userIdentifier = webSocketSessionManager.getUserId(session);
+        UUID documentId = webSocketSessionManager.getDocumentId(session);
+        UUID userIdentifier = webSocketSessionManager.getUserId(session);
 
         //  If the user is not connected, there is nothing we can do
         if (userIdentifier == null) return;
@@ -169,7 +172,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         userManager.removeUser(userIdentifier);
 
         //  Get the list of users in the document and broadcast the message to all users
-        Map<String, User> usersMap = document.getUsers();
+        Map<UUID, User> usersMap = document.getUsers();
         List<User> users = List.copyOf(usersMap.values());
 
         //  TODO:   NEED TO DECIDE WHAT TO DO WHEN A USER LEAVES AND THERE ARE NO USERS LEFT IN THE DOCUMENT

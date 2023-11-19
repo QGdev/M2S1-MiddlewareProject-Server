@@ -17,11 +17,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Document {
 
-    private final String uuid;
+    private final UUID uuid;
     private String name;
-    private final ConcurrentHashMap<String, User> joiningUsers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, User> joiningUsers = new ConcurrentHashMap<UUID, User>();
 
-    private final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, User> users = new ConcurrentHashMap<UUID, User>();
     private final AtomicInteger lineCount = new AtomicInteger(1);
 
     private final LineNode content;
@@ -40,7 +40,7 @@ public class Document {
         if (!isDocumentNameValid(name)) throw new IllegalArgumentException("Document name is not valid");
 
         this.name = name;
-        uuid = UUID.randomUUID().toString();
+        uuid = UUID.randomUUID();
         content = new LineNode();
     }
 
@@ -98,7 +98,7 @@ public class Document {
      * Returns the UUID of the document
      * @return  The UUID of the document
      */
-    public String getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 
@@ -119,7 +119,7 @@ public class Document {
     public void setName(String name) {
         if (name == null) throw new IllegalArgumentException("Document name is null");
         if (name.isEmpty()) throw new IllegalArgumentException("Document name is empty");
-        if (isDocumentNameValid(name)) throw new IllegalArgumentException("Document name is not valid");
+        if (!isDocumentNameValid(name)) throw new IllegalArgumentException("Document name is not valid");
 
         this.name = name;
     }
@@ -128,7 +128,7 @@ public class Document {
      * Returns the users of the document
      * @return  The users of the document
      */
-    public ConcurrentMap<String, User> getUsers() {
+    public ConcurrentMap<UUID, User> getUsers() {
         return users;
     }
 

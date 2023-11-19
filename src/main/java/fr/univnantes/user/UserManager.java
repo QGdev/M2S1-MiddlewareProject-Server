@@ -1,5 +1,6 @@
 package fr.univnantes.user;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -13,14 +14,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public class UserManager {
 
     private static final AtomicReference<UserManager> instance = new AtomicReference<>(null);
-    private final ConcurrentHashMap<String, User> users;
+    private final ConcurrentHashMap<UUID, User> users;
 
 
     /**
      * Creates a new user manager
      */
     private UserManager() {
-        users = new ConcurrentHashMap<>();
+        users = new ConcurrentHashMap<java.util.UUID, User>();
     }
 
     /**
@@ -44,7 +45,7 @@ public class UserManager {
      * @param userId    The UUID of the user
      * @return          The user with the given UUID
      */
-    public User getUser(String userId) {
+    public User getUser(UUID userId) {
         return users.get(userId);
     }
 
@@ -66,7 +67,7 @@ public class UserManager {
      * @param userId    The UUID of the user
      * @return          True if the user has been removed, false otherwise
      */
-    public boolean removeUser(String userId) {
+    public boolean removeUser(UUID userId) {
         return users.remove(userId) != null;
     }
 }

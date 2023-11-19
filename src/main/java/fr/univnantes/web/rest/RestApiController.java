@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.UUID;
 
 import static fr.univnantes.document.Document.isDocumentNameValid;
 import static fr.univnantes.web.rest.Utils.createJSONUserDocument;
@@ -133,7 +134,8 @@ public class RestApiController {
         if (documentId.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - Document id is empty");
         if (userName.isBlank()) return ResponseEntity.badRequest().body("HTTP 400 - User name is empty");
 
-        Document document = documentManager.getDocument(documentId);
+        UUID transformedDocumentId = UUID.fromString(documentId);
+        Document document = documentManager.getDocument(transformedDocumentId);
 
         //  Check if the document exists
         if (document == null)   return ResponseEntity.notFound().build();

@@ -6,6 +6,7 @@ import fr.univnantes.web.websocket.WebSocketSessionManager;
 import org.json.JSONObject;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -51,7 +52,7 @@ public interface WebSocketInstruction {
      * Returns the user identifier of the instruction.
      * @return The user identifier.
      */
-    String getUserId();
+    UUID getUserId();
 
     /**
      * Returns a callable that will execute the instruction.

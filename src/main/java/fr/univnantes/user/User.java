@@ -2,6 +2,8 @@ package fr.univnantes.user;
 
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.UUID;
+
 /**
  * Class representing a user.
  * <p>
@@ -10,7 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
  */
 public class User {
 
-    private final String uuid;
+    private final UUID uuid;
     private final String name;
 
     private WebSocketSession session;
@@ -21,7 +23,7 @@ public class User {
      * @param name  The name of the user
      */
     public User(String name) {
-        this.uuid = java.util.UUID.randomUUID().toString();
+        this.uuid = java.util.UUID.randomUUID();
         this.name = name;
     }
 
@@ -37,7 +39,7 @@ public class User {
      * Used to get the UUID
      * @return  The UUID of the user
      */
-    public String getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 
