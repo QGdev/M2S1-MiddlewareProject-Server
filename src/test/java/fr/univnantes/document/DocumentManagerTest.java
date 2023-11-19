@@ -1,8 +1,7 @@
-package document;
+package fr.univnantes.document;
 
-import fr.univnantes.document.Document;
-import fr.univnantes.document.DocumentManager;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DocumentManagerTest {

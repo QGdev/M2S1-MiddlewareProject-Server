@@ -1,9 +1,8 @@
-package user;
+package fr.univnantes.user;
 
-import fr.univnantes.user.User;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.socket.WebSocketSession;
 import org.mockito.Mockito;
+import org.springframework.web.socket.WebSocketSession;
 
 import static org.junit.jupiter.api.Assertions.*;
 

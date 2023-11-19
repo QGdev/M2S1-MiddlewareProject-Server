@@ -1,9 +1,8 @@
-package document;
+package fr.univnantes.document;
+
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-import fr.univnantes.document.LineNode;
-import org.junit.jupiter.api.Test;
 
 public class LineNodeTest {
     /**

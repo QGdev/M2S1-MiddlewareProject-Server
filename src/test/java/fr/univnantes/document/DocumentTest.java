@@ -1,9 +1,7 @@
-package document;
+package fr.univnantes.document;
 
-import fr.univnantes.document.Document;
 import fr.univnantes.user.User;
 import org.junit.jupiter.api.Test;
-import org.springdoc.core.configuration.oauth2.SpringDocOAuth2TokenIntrospection;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

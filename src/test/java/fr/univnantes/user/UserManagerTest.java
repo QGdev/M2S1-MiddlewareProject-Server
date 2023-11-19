@@ -1,7 +1,5 @@
-package user;
+package fr.univnantes.user;
 
-import fr.univnantes.user.User;
-import fr.univnantes.user.UserManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
