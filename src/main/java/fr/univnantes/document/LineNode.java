@@ -387,9 +387,26 @@ public class LineNode {
             //  Check if the index is valid
             //  Cannot be negative
             if (column < 0) return false;
+
             //  The index should correspond to an existing column node
             ColumnNode columnNode = getColumnNodeAtIndex(column);
-            if (columnNode == null) return false;
+            if (columnNode == null) {
+                int numberOfColumnNodes = getNumberOfColumnNodes();
+                if (column != numberOfColumnNodes) return false;
+
+                //  Insert a new line node after us
+                LineNode newLineNode = new LineNode();
+                newLineNode.setPrevious(this);
+                newLineNode.setNext(this.getNext());
+
+                //  Link the new line node to the document
+                if (this.getNext() != null) {
+                    this.getNext().setPrevious(newLineNode);
+                }
+                this.setNext(newLineNode);
+
+                return true;
+            }
 
             //  Split the line in two
             //  The first part will contain the characters before the line break and remain in the current line node
@@ -426,6 +443,23 @@ public class LineNode {
 
             return true;
         }
+    }
+
+    /**
+     * Returns the number of column nodes in the line
+     *
+     * @return  The number of column nodes in the line
+     */
+    private int getNumberOfColumnNodes() {
+        ColumnNode columnNode = content.get();
+        int numberOfColumnNodes = 0;
+
+        while (columnNode != null) {
+            numberOfColumnNodes++;
+            columnNode = columnNode.getNext();
+        }
+
+        return numberOfColumnNodes;
     }
 
     /**
