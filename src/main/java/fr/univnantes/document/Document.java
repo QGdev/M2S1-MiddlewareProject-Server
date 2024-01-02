@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 /**
  * Represents a document
@@ -352,26 +353,23 @@ public class Document {
      *     <li>Not null</li>
      *     <li>Not empty</li>
      *     <li>Not blank</li>
-     *     <li>Not longer than 255 characters</li>
+     *     <li>Not longer than 100 characters</li>
      *     <li>Does not contains: </li>
      *     <ul>
-     *         <li>\</li>
-     *         <li>/</li>
+     *         <li><</li>
+     *         <li>></li>
      *         <li>:</li>
-     *         <li>*</li>
-     *         <li>?</li>
      *         <li>"</li>
-     *         <li>&lt;</li>
-     *         <li>&gt;</li>
+     *         <li>/</li>
+     *         <li>\</li>
      *         <li>|</li>
+     *         <li>?</li>
+     *         <li>*</li>
      *         <li>\n</li>
      *         <li>\t</li>
      *         <li>\r</li>
      *         <li>\b</li>
      *         <li>\f</li>
-     *         <li>'</li>
-     *         <li>`</li>
-     *         <li>Space</li>
      *    </ul>
      *    </ul>
      *    @param name The name to check
@@ -382,16 +380,12 @@ public class Document {
         if (name == null) return false;
         if (name.isEmpty()) return false;
         if (name.isBlank()) return false;
-        if (name.length() > 255) return false;
+        if (name.length() > 100) return false;
 
         //  Checks if name contains special characters
-        char[] verifiedChars = new char[]{'\\', '/', ':', '*', '?', '"', '<', '>', '|', '\n', '\t', '\r', '\b', '\f', '\'', '`', ' '};
-
-        for (char c : verifiedChars) {
-            if (name.contains(String.valueOf(c))) return false;
-        }
+        Pattern pattern = Pattern.compile("[<>:\"/\\\\|?*\n\t\r\b\f]");
+        if (pattern.matcher(name).find()) return false;
 
         return true;
-
     }
 }
