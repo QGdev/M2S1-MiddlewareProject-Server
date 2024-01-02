@@ -60,7 +60,6 @@ public class ChangeDocNameInstruction implements WebSocketInstruction {
         if (!json.has(JSONAttributes.NEW_DOC_NAME)) throw new IllegalArgumentException("Does not contain a newName");
         String newName = json.getString(JSONAttributes.NEW_DOC_NAME);
         if (newName == null) throw new IllegalArgumentException("newName is null");
-        if (!isDocumentNameValid(newName)) throw new IllegalArgumentException("newName is not valid");
         this.newName = newName;
 
         //  Parse the payload userIdentifier
@@ -134,6 +133,12 @@ public class ChangeDocNameInstruction implements WebSocketInstruction {
                 sessionManager.removeSession(session);
                 userManager.removeUser(userIdentifier);
 
+                return false;
+            }
+
+            //  Check if the new document name is valid
+            if (!isDocumentNameValid(newName)) {
+                session.sendMessage(new TextMessage(generateErrorMessage("New document name is not valid")));
                 return false;
             }
 
