@@ -22,7 +22,7 @@ public class WebSocketSessionManager {
      * Creates a new WebSocketSessionManager
      */
     private WebSocketSessionManager() {
-        documentsSessions = new ConcurrentHashMap<WebSocketSession, java.util.UUID>();
+        documentsSessions = new ConcurrentHashMap<>();
         sessionToUser = new ConcurrentHashMap<>();
         userToSession = new ConcurrentHashMap<>();
     }

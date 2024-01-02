@@ -123,7 +123,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         //  Broadcast the message to all users but not the user who sent the message
         for (User u : document.getUsers().values()) {
             if (u.getSession() != null && u.getSession().isOpen()) {
-                    u.getSession().sendMessage(broadcastMessage);
+                u.getSession().sendMessage(broadcastMessage);
             }
         }
     }
