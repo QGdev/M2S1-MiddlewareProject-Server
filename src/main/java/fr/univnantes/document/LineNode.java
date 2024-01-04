@@ -5,10 +5,10 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Represents a line node
  * <p>
- *     A line node is a node of a document
- *     It contains a reference to the next and previous line node
- *     It also contains a reference to the first column node of the line
- *     It is used to represent a line in a document
+ * A line node is a node of a document
+ * It contains a reference to the next and previous line node
+ * It also contains a reference to the first column node of the line
+ * It is used to represent a line in a document
  * </p>
  */
 public class LineNode {
@@ -164,7 +164,7 @@ public class LineNode {
      * Returns the column node at the given index in the line, the index starts at 0
      *
      * @param index the index of the column node to return, the index starts at 0
-     * @return    the column node if it exists, null otherwise
+     * @return the column node if it exists, null otherwise
      */
     private ColumnNode getColumnNodeAtIndex(int index) {
         ColumnNode columnNode = content.get();
@@ -190,75 +190,112 @@ public class LineNode {
      *                  If the index is greater than the number of column nodes,
      *                  new column nodes will be created to fill the gap
      * @param character the character to insert
-     * @return      true if the character has been inserted, false otherwise
+     * @return true if the character has been inserted, false otherwise
      */
     public boolean insert(int index, char character) {
-        if (index < 0)  return false;
+        if (index < 0) return false;
 
         synchronized (this) {
-            ColumnNode columnNode = content.get();
+            ColumnNode firstColumnNode = getContent();
+            ColumnNode referenceColumnNode = getColumnNodeAtIndex(index);
+            ColumnNode newColumnNode = new ColumnNode();
+            newColumnNode.setCharacter(character);
+            newColumnNode.setParent(this);
 
-            //  If the line is empty
-            if (columnNode == null) {
-                columnNode = new ColumnNode();
-                columnNode.setParent(this);
-                content.set(columnNode);
-
-                //  If the index is 0, we insert the character in the new column node
-                if (index == 0) {
-                    columnNode.setCharacter(character);
-                    return true;
-                }
-            }
-
-            //  If the line is not empty
-
-            //  We will insert new nodes if needed
-            int currentIndex = 0;
-            while (currentIndex < index && columnNode.getNext() != null) {
-                columnNode = columnNode.getNext();
-                currentIndex++;
-            }
-
-            //  If the index is equal to the number of column nodes
-            //  We will insert a new column node before the existing column node
-            if (currentIndex == index) {
-                ColumnNode newColumnNode = new ColumnNode();
-                newColumnNode.setParent(this);
-                newColumnNode.setNext(columnNode);
-                newColumnNode.setPrevious(columnNode.getPrevious());
-                columnNode.setPrevious(newColumnNode);
+            //  If the index is less than the number of column nodes
+            if (referenceColumnNode != null) {
+                ColumnNode previousNode = referenceColumnNode.getPrevious();
 
                 //  If the column node is the first column node
-                if (newColumnNode.getPrevious() == null) {
-                    content.set(newColumnNode);
-                }
-                else {
-                    newColumnNode.getPrevious().setNext(newColumnNode);
+                if (previousNode == null) {
+                    //  If the line is empty
+                    //  Set the content of the line to the new column node
+                    if (firstColumnNode == null) {
+                        setContent(newColumnNode);
+                        return true;
+                    }
+
+                    //  If the line is not empty
+                    //  Link the new column node to the first column node
+                    firstColumnNode.setPrevious(newColumnNode);
+                    newColumnNode.setNext(firstColumnNode);
+                    setContent(newColumnNode);
+                    return true;
                 }
 
-                newColumnNode.setCharacter(character);
+                //  If the column node is in the middle
+                //  Link the previous column node to the new column node
+                previousNode.setNext(newColumnNode);
+                newColumnNode.setPrevious(previousNode);
+
+                //  Link the new column node to the reference column node
+                newColumnNode.setNext(referenceColumnNode);
+                referenceColumnNode.setPrevious(newColumnNode);
                 return true;
             }
 
             //  If the index is greater than the number of column nodes
-            //  We create new column nodes to fill the gap
-            while (currentIndex < index) {
-                ColumnNode newColumnNode = new ColumnNode();
-                newColumnNode.setParent(this);
-                columnNode.setNext(newColumnNode);
-                newColumnNode.setPrevious(columnNode);
-                columnNode = newColumnNode;
-                currentIndex++;
-            }
+            //  Create new blank column nodes to fill the gap
+            int numberOfColumnNodes = getNumberOfColumnNodes();
+            ColumnNode lastColumnNode = getLastColumnNode();
 
-            //  If the index is equal to the number of column nodes
-            if (currentIndex == index) {
-                columnNode.setCharacter(character);
+            //  If the line is empty
+            if (firstColumnNode == null) {
+                //  Fill the line with blank column nodes
+                while (numberOfColumnNodes < index) {
+                    ColumnNode blankColumnNode = new ColumnNode();
+                    blankColumnNode.setParent(this);
+                    blankColumnNode.setCharacter(' ');
+
+                    //  If the line is empty
+                    //  Set the content of the line to the blank column node
+                    if (lastColumnNode == null) {
+                        setContent(blankColumnNode);
+                    }
+                    //  If the line is not empty
+                    //  Link the last column node to the blank column node
+                    else {
+                        lastColumnNode.setNext(blankColumnNode);
+                        blankColumnNode.setPrevious(lastColumnNode);
+                    }
+
+                    lastColumnNode = blankColumnNode;
+                    numberOfColumnNodes++;
+                }
+
+                //  If the line is empty
+                //  Set the content of the line to the new column node
+                if (lastColumnNode == null) {
+                    setContent(newColumnNode);
+                    return true;
+                }
+
+                //  If the line is not empty
+                //  Link the last column node to the new column node
+                lastColumnNode.setNext(newColumnNode);
+                newColumnNode.setPrevious(lastColumnNode);
                 return true;
             }
 
-            return false;
+            //  If the line is not empty
+            //  Fill the line with blank column nodes
+            while (numberOfColumnNodes < index) {
+                ColumnNode blankColumnNode = new ColumnNode();
+                blankColumnNode.setParent(this);
+                blankColumnNode.setCharacter(' ');
+
+                //  Link the last column node to the blank column node
+                lastColumnNode.setNext(blankColumnNode);
+                blankColumnNode.setPrevious(lastColumnNode);
+
+                lastColumnNode = blankColumnNode;
+                numberOfColumnNodes++;
+            }
+
+            //  Link the last column node to the new column node
+            lastColumnNode.setNext(newColumnNode);
+            newColumnNode.setPrevious(lastColumnNode);
+            return true;
         }
     }
 
@@ -267,10 +304,10 @@ public class LineNode {
      *
      * @param index     the index of the character to modify, the index starts at 0
      * @param character the new character
-     * @return      true if the character has been modified, false otherwise
+     * @return true if the character has been modified, false otherwise
      */
     public boolean modify(int index, char character) {
-        if (index < 0)  return false;
+        if (index < 0) return false;
 
         synchronized (this) {
             ColumnNode columnNode = getColumnNodeAtIndex(index);
@@ -286,11 +323,12 @@ public class LineNode {
 
     /**
      * Deletes the character at the given index in the line, the index starts at 0
-     * @param index    the index of the character to delete, the index starts at 0
-     * @return    true if the character has been deleted, false otherwise
+     *
+     * @param index the index of the character to delete, the index starts at 0
+     * @return true if the character has been deleted, false otherwise
      */
     public boolean delete(int index) {
-        if (index < 0)  return false;
+        if (index < 0) return false;
 
         synchronized (this) {
             ColumnNode columnNode = getColumnNodeAtIndex(index);
@@ -326,50 +364,82 @@ public class LineNode {
 
     /**
      * Deletes the line break at the end of the line
-     * @return  true if the line break has been deleted, false otherwise
+     *
+     * @return true if the line break has been deleted, false otherwise
      */
     public boolean deleteLineBreak() {
         synchronized (this) {
-            LineNode nextLineNode = this.getNext();
+            LineNode previousLineNode = getPrevious();
+            LineNode nextLineNode = getNext();
+            ColumnNode actualContent = getContent();
+            //  If the line is empty
+            if (previousLineNode == null) return false;
 
-            if (nextLineNode == null) return false;
+            //  Lock on the previous line node
+            synchronized (previousLineNode) {
 
-            LineNode newNextLineNode = nextLineNode.getNext();
+                if (nextLineNode != null) {
+                    //  Detach the current line node from the document
+                    //  Link the previous line node to the next line node
+                    if (actualContent == null) {
+                        synchronized (nextLineNode) {
+                            previousLineNode.setNext(nextLineNode);
+                            nextLineNode.setPrevious(previousLineNode);
 
-            if (newNextLineNode != null) {
-                newNextLineNode.setPrevious(this);
-                setNext(newNextLineNode);
-            }
-            else {
-                setNext(null);
-            }
+                            return true;
+                        }
+                    }
 
-            //  Copy the content of the next line node at the end of the current line node
-            ColumnNode lastCurrentColumnNode = getLastColumnNode();
-            ColumnNode firstNextColumnNode = nextLineNode.getContent();
+                    //  The content of the current line node will be moved to the previous line node
+                    //  Link the previous line node to the next line node
+                    synchronized (nextLineNode) {
+                        previousLineNode.setNext(nextLineNode);
+                        nextLineNode.setPrevious(previousLineNode);
+                    }
 
-            ////    Set the parent of the next column nodes to the current line node
-            ColumnNode currentColumnNode = firstNextColumnNode;
-            while (currentColumnNode != null) {
-                currentColumnNode.setParent(this);
-                currentColumnNode = currentColumnNode.getNext();
-            }
+                    //  Merge the content of the current line node with the content of the previous line node
+                    ColumnNode lastColumnNode = previousLineNode.getLastColumnNode();
 
-            ////    Set the previous and next column nodes of the first and last column nodes
-            /////   The current line node is empty
-            if (lastCurrentColumnNode == null) {
-                content.set(firstNextColumnNode);
+                    if (lastColumnNode == null) {
+                        previousLineNode.setContent(actualContent);
+                    } else {
+                        lastColumnNode.setNext(actualContent);
+                    }
+
+                    //  Set parent of other column nodes
+                    ColumnNode currentColumnNode = actualContent;
+                    while (currentColumnNode != null) {
+                        currentColumnNode.setParent(previousLineNode);
+                        currentColumnNode = currentColumnNode.getNext();
+                    }
+                    return true;
+                }
+
+                //  If the line is the last line of the document
+                //  Detach the current line node from the document
+                previousLineNode.setNext(null);
+
+                if (actualContent == null) return true;
+
+                //  The content of the current line node will be moved to the previous line node
+                //  Merge the content of the current line node with the content of the previous line node
+                ColumnNode lastColumnNode = previousLineNode.getLastColumnNode();
+
+                if (lastColumnNode == null) {
+                    previousLineNode.setContent(actualContent);
+                } else {
+                    lastColumnNode.setNext(actualContent);
+                }
+
+                //  Set parent of other column nodes
+                ColumnNode currentColumnNode = actualContent;
+                while (currentColumnNode != null) {
+                    currentColumnNode.setParent(previousLineNode);
+                    currentColumnNode = currentColumnNode.getNext();
+                }
+
                 return true;
             }
-            //////  If the next line node is empty, we don't need to copy the content
-            if (firstNextColumnNode == null || firstNextColumnNode.getCharacter() == '\0') {
-                return true;
-            }
-
-            lastCurrentColumnNode.setNext(firstNextColumnNode);
-            firstNextColumnNode.setPrevious(lastCurrentColumnNode);
-
-            return true;
         }
     }
 
@@ -378,77 +448,90 @@ public class LineNode {
      * Will split the line in two, the first part will contain the characters before the line break
      * The second part will contain the characters after the line break
      *
-     * @param column    the index of the line break, the index starts at 0
-     * @return      true if the line break has been inserted, false otherwise
+     * @param column the index of the line break, the index starts at 0
+     * @return true if the line break has been inserted, false otherwise
      */
     public boolean insertLineBreak(int column) {
+        //  Check if the index is valid
+        //  Cannot be negative
+        if (column < 0) return false;
+
         synchronized (this) {
-
-            //  Check if the index is valid
-            //  Cannot be negative
-            if (column < 0) return false;
-
-            //  The index should correspond to an existing column node
+            //  Get the column node at the given index
             ColumnNode columnNode = getColumnNodeAtIndex(column);
+
+            //  If the column node does not exist
+            //  Just create a new line node
             if (columnNode == null) {
-                int numberOfColumnNodes = getNumberOfColumnNodes();
-                if (column != numberOfColumnNodes) return false;
-
-                //  Insert a new line node after us
                 LineNode newLineNode = new LineNode();
-                newLineNode.setPrevious(this);
-                newLineNode.setNext(this.getNext());
+                LineNode nextLineNode = getNext();
 
-                //  Link the new line node to the document
-                if (this.getNext() != null) {
-                    this.getNext().setPrevious(newLineNode);
+                //  If the next line node does not exist
+                //  Just link the new line node to the current line node
+                if (nextLineNode == null) {
+                    setNext(newLineNode);
+                    newLineNode.setPrevious(this);
+                    return true;
                 }
-                this.setNext(newLineNode);
 
-                return true;
+                //  If the next line node exists
+                //  Lock on the next line node
+                synchronized (nextLineNode) {
+                    //  Attach the new line node to the document
+                    //  Link the current line node to the new line node to the next line node
+                    setNext(newLineNode);
+                    newLineNode.setPrevious(this);
+                    newLineNode.setNext(nextLineNode);
+                    nextLineNode.setPrevious(newLineNode);
+
+                    return true;
+                }
             }
 
+            //  If the column node exists
             //  Split the line in two
-            //  The first part will contain the characters before the line break and remain in the current line node
-            //  The second part will contain the characters after the line break and will be moved to a new line node
-
-            ColumnNode secondPart = columnNode;
-            if (columnNode.getPrevious() != null) {
-                columnNode.getPrevious().setNext(null);
-                secondPart.setPrevious(null);
-            }
-            else {
-                content.set(null);
-            }
-
-            //  Create a new line node after the current one and link it in the document
+            //  But first, check if the column node is the last column node
+            LineNode nextLineNode = getNext();
             LineNode newLineNode = new LineNode();
-            newLineNode.setContent(secondPart);
-            //  Link every column node to the new line node
-            ColumnNode currentColumnNode = secondPart;
+
+            //  Set the second part of the line into the new line node
+            newLineNode.setContent(columnNode);
+            if (columnNode.getNext() != null)   columnNode.getNext().setPrevious(null);
+            columnNode.setPrevious(null);
+
+            //  Set parents of the column nodes
+            ColumnNode currentColumnNode = newLineNode.getContent();
             while (currentColumnNode != null) {
                 currentColumnNode.setParent(newLineNode);
                 currentColumnNode = currentColumnNode.getNext();
             }
 
-            //  Link the new line node to the document
-            newLineNode.setNext(this.getNext());
-            newLineNode.setPrevious(this);
-
-            //  Set link of the other nodes
-            if (this.getNext() != null) {
-                this.getNext().setPrevious(newLineNode);
+            //  If the column node is the last column node
+            if (nextLineNode == null) {
+                setNext(newLineNode);
+                newLineNode.setPrevious(this);
+                return true;
             }
-            this.setNext(newLineNode);
 
-            return true;
+            //  If the column node is not the last column node
+            //  Lock on the next line node
+            synchronized (nextLineNode) {
+                //  Attach the new line node to the document
+                //  Link the current line node to the new line node to the next line node
+                setNext(newLineNode);
+                newLineNode.setPrevious(this);
+                newLineNode.setNext(nextLineNode);
+                nextLineNode.setPrevious(newLineNode);
+
+                return true;
+            }
         }
     }
 
     /**
      * Returns the number of column nodes in the line
      *
-     * @return  The number of column nodes in the line
+     * @return The number of column nodes in the line
      */
     private int getNumberOfColumnNodes() {
         ColumnNode columnNode = content.get();
@@ -465,7 +548,7 @@ public class LineNode {
     /**
      * Converts the line node to a string representation
      *
-     * @return  the string representation of the line node
+     * @return the string representation of the line node
      */
     public String toString() {
         synchronized (this) {

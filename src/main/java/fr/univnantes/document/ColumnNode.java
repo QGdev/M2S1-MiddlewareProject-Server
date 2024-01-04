@@ -31,12 +31,10 @@ public class ColumnNode {
      * Empties the column node
      */
     public void clear() {
-        synchronized (this) {
-            next.set(null);
-            previous.set(null);
-            parent.set(null);
-            character.set('\0');
-        }
+        next.set(null);
+        previous.set(null);
+        parent.set(null);
+        character.set('\0');
     }
 
     /**
@@ -45,9 +43,7 @@ public class ColumnNode {
      * @return the next column node
      */
     public ColumnNode getNext() {
-        synchronized (this) {
-            return next.get();
-        }
+        return next.get();
     }
 
     /**
@@ -56,9 +52,7 @@ public class ColumnNode {
      * @return the next column node
      */
     public ColumnNode getNextAcquire() {
-        synchronized (this) {
-            return next.getAcquire();
-        }
+        return next.getAcquire();
     }
 
     /**
@@ -67,9 +61,7 @@ public class ColumnNode {
      * @param next the next column node
      */
     public void setNext(ColumnNode next) {
-        synchronized (this) {
-            this.next.set(next);
-        }
+        this.next.set(next);
     }
 
     /**
@@ -78,9 +70,7 @@ public class ColumnNode {
      * @param next the next column node
      */
     public void setNextRelease(ColumnNode next) {
-        synchronized (this) {
-            this.next.setRelease(next);
-        }
+        this.next.setRelease(next);
     }
 
     /**
@@ -89,9 +79,7 @@ public class ColumnNode {
      * @return the previous column node
      */
     public ColumnNode getPrevious() {
-        synchronized (this) {
-            return previous.get();
-        }
+        return previous.get();
     }
 
     /**
@@ -100,9 +88,7 @@ public class ColumnNode {
      * @return the previous column node
      */
     public ColumnNode getPreviousAcquire() {
-        synchronized (this) {
-            return this.previous.getAcquire();
-        }
+        return this.previous.getAcquire();
     }
 
     /**
@@ -111,9 +97,7 @@ public class ColumnNode {
      * @param previous the previous column node
      */
     public void setPrevious(ColumnNode previous) {
-        synchronized (this) {
-            this.previous.set(previous);
-        }
+        this.previous.set(previous);
     }
 
     /**
@@ -122,9 +106,7 @@ public class ColumnNode {
      * @param previous the previous column node
      */
     public void setPreviousRelease(ColumnNode previous) {
-        synchronized (this) {
-            this.previous.setRelease(previous);
-        }
+        this.previous.setRelease(previous);
     }
 
     /**
@@ -133,9 +115,7 @@ public class ColumnNode {
      * @return the parent line node
      */
     public LineNode getParent() {
-        synchronized (this) {
-            return parent.get();
-        }
+        return parent.get();
     }
 
     /**
@@ -144,9 +124,7 @@ public class ColumnNode {
      * @return the parent line node
      */
     public LineNode getParentAcquire() {
-        synchronized (this) {
-            return this.parent.getAcquire();
-        }
+        return this.parent.getAcquire();
     }
 
     /**
@@ -155,9 +133,7 @@ public class ColumnNode {
      * @param parent the parent line node
      */
     public void setParent(LineNode parent) {
-        synchronized (this) {
-            this.parent.set(parent);
-        }
+        this.parent.set(parent);
     }
 
     /**
@@ -166,9 +142,7 @@ public class ColumnNode {
      * @param parent the parent line node
      */
     public void setParentRelease(LineNode parent) {
-        synchronized (this) {
-            this.parent.setRelease(parent);
-        }
+        this.parent.setRelease(parent);
     }
 
     /**
@@ -177,9 +151,7 @@ public class ColumnNode {
      * @return the character
      */
     public char getCharacter() {
-        synchronized (this) {
-            return character.get();
-        }
+        return character.get();
     }
 
     /**
@@ -188,8 +160,6 @@ public class ColumnNode {
      * @param character the character
      */
     public void setCharacter(char character) {
-        synchronized (this) {
-            this.character.set(character);
-        }
+        this.character.set(character);
     }
 }
