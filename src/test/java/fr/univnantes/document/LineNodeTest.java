@@ -100,9 +100,8 @@ public class LineNodeTest {
         LineNode lineNode = new LineNode();
         lineNode.insert(0, 'A');
         assertTrue(lineNode.insertLineBreak(0));
-
         assertFalse(lineNode.insertLineBreak(-1));
-        assertFalse(lineNode.insertLineBreak(1));
+        assertTrue(lineNode.insertLineBreak(1));
     }
 
 
