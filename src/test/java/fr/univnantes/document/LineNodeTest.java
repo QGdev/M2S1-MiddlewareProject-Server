@@ -81,8 +81,9 @@ public class LineNodeTest {
         LineNode lineNode2 = new LineNode();
         lineNode2.insert(0, 'B');
         lineNode1.setNext(lineNode2);
+        lineNode2.setPrevious(lineNode1);
 
-        assertTrue(lineNode1.deleteLineBreak());
+        assertTrue(lineNode2.deleteLineBreak());
         assertEquals("AB\n", lineNode1.toString());
     }
 
