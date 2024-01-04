@@ -24,6 +24,7 @@ import static fr.univnantes.web.rest.Utils.createJSONUserDocument;
  *     It is used to create and join documents.
  * </p>
  */
+@RequestMapping("/api")
 @RestController
 public class RestApiController {
 
