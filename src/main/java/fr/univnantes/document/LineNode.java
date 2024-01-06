@@ -497,7 +497,7 @@ public class LineNode {
             //  Set the second part of the line into the new line node
             newLineNode.setContent(columnNode);
             if (columnNode.getNext() != null)   columnNode.getNext().setPrevious(null);
-            columnNode.setPrevious(null);
+            columnNode.setNext(null);
 
             //  Set parents of the column nodes
             ColumnNode currentColumnNode = newLineNode.getContent();
