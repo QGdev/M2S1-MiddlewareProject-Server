@@ -175,6 +175,7 @@ public class ConnectInstruction implements WebSocketInstruction {
                     .put(JSONAttributes.TYPE, CONNECT.type)
                     .put(JSONAttributes.MESSAGE, "Connected")
                     .put(JSONAttributes.USER_ID, userIdentifier)
+                    .put(JSONAttributes.DOC_NAME, document.getName())
                     .put(JSONAttributes.CONTENT, document.toString())
                     .toString()));
             return true;

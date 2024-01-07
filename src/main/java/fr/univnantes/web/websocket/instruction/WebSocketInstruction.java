@@ -25,6 +25,7 @@ public interface WebSocketInstruction {
         public static final String TYPE = "type";
         public static final String USER_ID = "userId";
         public static final String DOC_ID = "docId";
+        public static final String DOC_NAME = "docName";
         public static final String CONTENT = "content";
         public static final String USERS_LIST = "users";
         public static final String USER_NAME = "userName";

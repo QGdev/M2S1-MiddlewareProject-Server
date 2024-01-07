@@ -85,6 +85,7 @@ Ensuite, vous recevrez un message du serveur de la forme suivante :
   "type": "CONNECT",
   "message": "Connected",
   "userId": "00000000-0000-0000-0000-000000000000",
+  "docName": "My super document",
   "content": "Hello World !\n This is a test !"
 }
 ```
