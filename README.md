@@ -406,7 +406,7 @@ Avant de pouvoir compiler et exécuter ce projet, vous devrez avoir ces outils i
 - NodeJS
 - NPM
 
-> ***NOTE :*** Sans ces outils, vous ne pourrez pas compiler et exécuter ce projet.
+> ***Note:*** Sans ces outils, vous ne pourrez pas compiler et exécuter ce projet.
 
 ####  Cloner les dépôts
 
@@ -474,7 +474,7 @@ _app  docs favicon.png  index.html
 
 Et il nous reste à build le back-end :
 
-> ATTENTION: La version de JDK requise est la 21 mais même si elle est définie sur JDK21, Maven peut ne pas la prendre comme il le devrait...
+> ***ATTENTION:*** La version de JDK requise est la 21 mais même si elle est définie sur JDK21, Maven peut ne pas la prendre comme il le devrait...
 > Si vous avez des problèmes avec Maven et la compilation, un fichier JAR est disponible dans la section release de GitHub.
 
 ```sh
@@ -519,6 +519,6 @@ MIDDLEWARE PROJECT - MASTER 2 ALMA - 2023-2024
 2024-01-06T12:13:03.797+01:00  INFO 15998 --- [           main] fr.univnantes.Application                : Started Application in 2.056 seconds (process running for 2.475)
 ```
 
-SI tout s'est bien passé, vous pouvez maintenant tester le projet en ouvrant un navigateur et en tapant
+Si tout s'est bien passé, vous pouvez maintenant tester le projet en ouvrant un navigateur et en tapant
 - [http://localhost:8080](http://localhost:8080)
 - Ou ```http://[YOUR_COMPUTER_IP]:8080``` (peut ne pas fonctionner en fonction des paramètres de votre pare-feu)
