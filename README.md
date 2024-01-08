@@ -314,11 +314,11 @@ Notre projet n'est pas parfait, c'est un projet universitaire, nous avons donc d
 
 Pour exécuter ce projet, vous avez trois options :
 
-| Option                          | Description                                                                                 | Prérequis                     |
-|---------------------------------|---------------------------------------------------------------------------------------------|-------------------------------|
-| [**Docker**](#docker)           | Utiliser Docker pour exécuter le projet                                                     | Docker                        |
-| [**Compilation**](#compilation) | Compiler le projet en utilisant Maven et NodeJS                                             | Java **21** (JDK), Maven, NPM |
-| [**Exécution**](#exécution)     | Exécuter le projet en utilisant le fichier JAR disponible dans la section release de GitHub | Java 21                       |
+| Option                      | Description                                                                                 | Prérequis                     |
+|-----------------------------|---------------------------------------------------------------------------------------------|-------------------------------|
+| [**Docker**](#docker)       | Utiliser Docker pour exécuter le projet                                                     | Docker                        |
+| [**Compilation**](#Compilation et exécution sans Docker) | Compiler le projet en utilisant Maven et NodeJS                                             | Java **21** (JDK), Maven, NPM |
+| [**Exécution**](#Exécution du projet)       | Exécuter le fichier JAR disponible dans la section release de GitHub | Java **21**                   |
 
 ### Docker
 
@@ -486,9 +486,9 @@ your_folder
 > mvn package -f pom.xml
 ```
 
-### Exécution du projet
+#### Exécution du projet
 
-Vous pouvez maintenant exécuter le fichier JAR compilé dans ```M2S1-MiddlewareProject-Server/target/MiddlewareServer-1.0-SNAPSHOT.jar```, ou utiliser celui disponible dans la section release de GitHub :
+Vous pouvez maintenant exécuter le fichier JAR compilé dans ```M2S1-MiddlewareProject-Server/target/MiddlewareServer-1.0-SNAPSHOT.jar```, ou utiliser celui disponible dans la section release de GitHub, [ici](https://github.com/QGdev/M2S1-MiddlewareProject-Server/releases/tag/rendu) :
 ```sh
 > java -jar MiddlewareServer-1.0-SNAPSHOT.jar
 ```
