@@ -337,30 +337,22 @@ Dépôt serveur : [github.com/QGdev/M2S1-MiddlewareProject-Server](https://githu
 M2S1-MiddlewareProject-Server
 ```
 
-#### Build de l'image Docker
+#### Lancement de l'image Docker
+
+> ***ATTENTION:*** Il est préférable de ne pas se situer sur le réseau informatique de Nantes Université, puisqu'il faudrait insérer la configuration Maven pour le proxy dans le conteneur de build du JAR.
+> Sans quoi, le build du JAR échouera, car Maven ne pourra pas télécharger les dépendances.
 
 Ensuite, nous allons build l'image Docker du serveur, pour cela, nous allons utiliser le Dockerfile et un docker-compose.yml est disponible à la racine du dépôt Serveur.
-Pour build l'image Docker, exécutez les commandes suivantes :
-
-```sh
-> pwd
-your_folder
-> cd M2S1-MiddlewareProject-Server
-> docker build -t middleware-server .
-```
-
-> ***Note:*** Le build de l'image Docker peut prendre un certain temps, car il doit télécharger toutes les dépendances Maven ainsi que NodeJS et NPM.
-
-#### Exécution du projet
-
-Pour exécuter le projet, nous allons utiliser docker-compose, pour cela, exécutez la commande suivante :
+Nous allons utiliser docker-compose pour build l'image et lancer le conteneur Docker.
+Il suffit d'exécuter la commande suivante :
 
 ```sh
 > pwd
 your_folder/M2S1-MiddlewareProject-Server
-> docker-compose up
+> docker-compose up --build
 ```
 
+> ***Note:*** Le build de l'image Docker peut prendre un certain temps, car il doit télécharger toutes les dépendances Maven ainsi que NodeJS et NPM.
 > ***Note:*** Si vous voulez exécuter le projet en arrière-plan, ajoutez l'option ```-d``` à la commande ```docker-compose up```.
 
 Normalement, tout devrait s'être exécuté sans erreurs, et nous devrions avoir :
@@ -396,6 +388,15 @@ SI tout s'est bien passé, vous pouvez maintenant tester le projet en ouvrant un
 - [http://localhost:8080](http://localhost:8080)
 - ```http://[YOUR_COMPUTER_IP]:8080``` (peut ne pas fonctionner en fonction des paramètres de votre pare-feu)
 
+#### Démontage de l'image Docker
+
+Pour démonter l'image Docker, il suffit d'exécuter la commande suivante :
+
+```sh
+> pwd
+your_folder/M2S1-MiddlewareProject-Server
+> docker-compose down
+```
 
 ### Compilation et exécution sans Docker
 
